@@ -106,6 +106,15 @@ transition:background .3s,color .3s;
 <button class="lang-btn on" data-lang="zh" onclick="pickLang('zh')">🇨🇳 中文</button>
 <button class="lang-btn" data-lang="th" onclick="pickLang('th')">🇹🇭 ไทย</button>
 </div>
+<div class="engine-status" id="engineStatus" style="margin:8px 0;font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px">
+<div class="engine-dot" id="engineDot" style="width:8px;height:8px;border-radius:50%;background:var(--warn);animation:pulse 1s infinite"></div>
+<span id="engineText">正在載入 AI 引擎...</span>
+</div>
+<style>
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.engine-status.ok .engine-dot{background:var(--accent)!important;animation:none!important}
+.engine-status.err .engine-dot{background:var(--error)!important;animation:none!important}
+</style>
 <button class="go-btn" id="goBtn" onclick="start()" disabled>🎤 開始轉文字</button>
 <div class="prog" id="prog">
 <div class="pbar"><div class="pfill" id="pfill"></div></div>
@@ -132,7 +141,7 @@ transition:background .3s,color .3s;
 </div>
 <div class="toast" id="toast"><i class="fas fa-check-circle"></i><span id="tm"></span></div>
 
-<script src="https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2/dist/transformers.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2/dist/transformers.min.js" onerror="this.onerror=null;this.src='https://unpkg.com/@xenova/transformers@2.17.2/dist/transformers.min.js'"></script>
 <script>
 // ===== 狀態 =====
 let F = null, L = 'zh', T = null, H = JSON.parse(localStorage.getItem('whisper-history')||'[]'), R = '';
@@ -172,6 +181,31 @@ function pickLang(l) {
   document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('on', b.dataset.lang === l));
 }
 
+// ===== 等待 Transformers.js 載入 =====
+(function waitEngine() {
+  const st = $('engineStatus'), dt = $('engineDot'), tx = $('engineText'), go = $('goBtn');
+  let tries = 0;
+  function check() {
+    if (window.transformers) {
+      st.className = 'engine-status ok';
+      dt.style.background = 'var(--accent)'; dt.style.animation = 'none';
+      tx.textContent = '✅ AI 引擎已就緒';
+      if (F) go.disabled = false;
+      console.log('🎤 Transformers.js 已載入');
+      return;
+    }
+    tries++;
+    if (tries > 30) { // ~15秒
+      st.className = 'engine-status err';
+      dt.style.background = 'var(--error)'; dt.style.animation = 'none';
+      tx.innerHTML = '❌ 載入失敗，<a href="#" onclick="location.reload()" style="color:var(--accent);text-decoration:underline">點擊重新載入</a>';
+      return;
+    }
+    setTimeout(check, 500);
+  }
+  check();
+})();
+
 // ===== 日夜 =====
 const st = localStorage.getItem('whisper-theme');
 if (st === 'light') document.documentElement.setAttribute('data-theme', 'light');
@@ -185,7 +219,7 @@ $('themeBtn').onclick = () => {
 // ===== 🔥 開始轉寫（最簡版） =====
 async function start() {
   if (!F) { show('請先選檔案', 'err'); return; }
-  if (!window.transformers) { show('AI 模型庫尚未載入', 'err'); return; }
+  if (!window.transformers) { show('AI 引擎尚未就緒，請稍候或重新載入', 'err'); return; }
 
   const btn = $('goBtn'), prog = $('prog'), fill = $('pfill'), pt = $('ptext'), ps = $('psub'), res = $('res');
   btn.disabled = true; btn.textContent = '⏳ 處理中...';
