@@ -13,6 +13,12 @@
 --accent: #00d4aa; --accent2: #00f0c0; --accent-dim: rgba(0,212,170,.08);
 --warn: #f5a623; --error: #ff5c5c; --shadow: 0 8px 40px rgba(0,0,0,.5);
 }
+[data-theme="light"] {
+--bg: #f5f0ea; --bg2: #eae3da; --card: #ffffff; --border: #d4ccc2; --border2: #c4bab0;
+--fg: #2a221c; --fg2: #5a4e42; --muted: #9a8e80;
+--accent: #0d9b6a; --accent2: #0bb87e; --accent-dim: rgba(13,155,106,.08);
+--warn: #d4902a; --error: #d94040; --shadow: 0 8px 40px rgba(0,0,0,.08);
+}
 * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 body {
 font-family: 'Noto Sans TC', sans-serif;
@@ -133,10 +139,13 @@ transition: transform .4s cubic-bezier(.4,0,.2,1); pointer-events: none; max-wid
 </head>
 <body>
 <div class="container">
-<div class="header">
-<div class="header-icon"><i class="fas fa-microphone-alt"></i></div>
-<h1>語音轉文字</h1>
-<p>影片語音 → 本地 AI 即時轉文字，不上傳任何資料</p>
+<div style="display:flex;align-items:center;gap:12px;padding:20px 0 12px">
+<div class="header-icon" style="margin:0"><i class="fas fa-microphone-alt"></i></div>
+<div style="flex:1">
+<div style="font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:700">語音轉文字</div>
+<div style="font-size:13px;color:var(--muted);margin-top:2px">影片語音 → 本地 AI 即時轉文字</div>
+</div>
+<button class="theme-btn" id="themeBtn" onclick="toggleTheme()"><i class="fas fa-sun" id="themeIcon"></i></button>
 </div>
 <div class="upload-card">
 <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
@@ -474,6 +483,14 @@ window.clearHistory = function() {
 
 renderHistory();
 
+window.toggleTheme = function() {
+  const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
+  document.documentElement.setAttribute('data-theme', isDark ? 'light' : 'dark');
+  document.getElementById('themeIcon').className = isDark ? 'fas fa-moon' : 'fas fa-sun';
+  localStorage.setItem('whisper-theme', isDark ? 'light' : 'dark');
+};
+const savedTheme = localStorage.getItem('whisper-theme');
+if (savedTheme === 'light') toggleTheme();
 console.log('🎤 語音轉文字工具已準備就緒');
 </script>
 
