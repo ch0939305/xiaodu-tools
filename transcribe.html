@@ -4,445 +4,254 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>語音轉文字 · Whisper 本地版</title>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
-:root {
---bg: #0a0e1a; --bg2: #111827; --card: #1a2332; --border: #2a3a50;
---fg: #e8edf5; --fg2: #b0c0d8; --muted: #6a7a90;
---accent: #00d4aa; --accent2: #00f0c0; --accent-dim: rgba(0,212,170,.08);
---warn: #f5a623; --error: #ff5c5c; --shadow: 0 8px 40px rgba(0,0,0,.5);
-}
-[data-theme="light"] {
---bg: #f5f0ea; --bg2: #eae3da; --card: #fff; --border: #d4ccc2;
---fg: #2a221c; --fg2: #5a4e42; --muted: #9a8e80;
---accent: #0d9b6a; --accent2: #0bb87e; --accent-dim: rgba(13,155,106,.08);
---warn: #d4902a; --error: #d94040; --shadow: 0 8px 40px rgba(0,0,0,.08);
-}
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-body{
-font-family:'Noto Sans TC',sans-serif;
-background:var(--bg);color:var(--fg);min-height:100vh;overflow-x:hidden;
-transition:background .3s,color .3s;
-}
-.container{max-width:700px;margin:0 auto;padding:16px}
-.top-bar{display:flex;align-items:center;gap:10px;padding:16px 0 8px}
-.top-icon{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,var(--accent),#0088cc);display:flex;align-items:center;justify-content:center;font-size:18px;color:#0a0e1a;flex-shrink:0}
-.top-text{flex:1}
-.top-text h1{font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:700}
-.top-text p{font-size:12px;color:var(--muted);margin-top:1px}
-.theme-btn{width:38px;height:38px;border-radius:10px;border:1px solid var(--border);background:var(--card);color:var(--fg2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;transition:all .3s;flex-shrink:0}
-.theme-btn:hover{border-color:var(--accent);color:var(--accent)}
-.card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:20px;box-shadow:var(--shadow)}
-.zone{border:2px dashed var(--border);border-radius:16px;padding:40px 20px;text-align:center;cursor:pointer;transition:all .3s}
-.zone:hover{border-color:var(--accent);background:var(--accent-dim)}
-.zone.has-file{border-style:solid;border-color:var(--accent);padding:12px}
-.zone i{font-size:36px;color:var(--accent);margin-bottom:8px;opacity:.6}
-.zone .t1{font-size:14px;color:var(--fg2)}
-.zone .t2{font-size:11px;color:var(--muted);margin-top:4px}
-.file-info{display:none;align-items:center;gap:10px}
-.file-info.show{display:flex}
-.file-icon{width:36px;height:36px;border-radius:8px;background:var(--accent-dim);display:flex;align-items:center;justify-content:center;color:var(--accent);flex-shrink:0}
-.file-name{font-size:13px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
-.file-del{width:28px;height:28px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .3s;flex-shrink:0;font-size:12px}
-.file-del:hover{border-color:var(--error);color:var(--error)}
-.lang-row{display:flex;gap:8px;margin:12px 0}
-.lang-btn{flex:1;padding:8px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--fg2);font-size:13px;font-weight:500;cursor:pointer;transition:all .3s;text-align:center;font-family:inherit}
-.lang-btn:hover{border-color:var(--accent);color:var(--accent)}
-.lang-btn.on{border-color:var(--accent);background:var(--accent-dim);color:var(--accent)}
-.go-btn{width:100%;padding:14px;border-radius:12px;border:none;background:linear-gradient(135deg,var(--accent),#00b894);color:#0a0e1a;font-size:15px;font-weight:700;cursor:pointer;transition:all .3s;font-family:inherit;box-shadow:0 4px 20px var(--accent-dim)}
-.go-btn:hover{transform:translateY(-2px)}
-.go-btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
-.prog{display:none;margin-top:16px}
-.prog.show{display:block}
-.pbar{height:5px;border-radius:3px;background:var(--border);overflow:hidden}
-.pfill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--accent),#0088cc);width:0%;transition:width .3s}
-.ptext{font-size:12px;color:var(--muted);margin-top:6px;text-align:center}
-.psub{font-size:11px;color:var(--muted);margin-top:3px;text-align:center;opacity:.7}
-.res{display:none;margin-top:20px;animation:up .4s ease}
-.res.show{display:block}
+body{font-family:'Noto Sans TC',sans-serif;background:#0a0e1a;color:#e8edf5;min-height:100vh}
+.c{max-width:700px;margin:0 auto;padding:16px}
+.t{display:flex;align-items:center;gap:10px;padding:16px 0 8px}
+.ti{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#00d4aa,#0088cc);display:flex;align-items:center;justify-content:center;font-size:18px;color:#0a0e1a;flex-shrink:0}
+.t1{flex:1}
+.t1 h1{font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:700}
+.t1 p{font-size:12px;color:#6a7a90;margin-top:1px}
+.engine{display:flex;align-items:center;gap:6px;padding:8px 12px;border-radius:8px;background:rgba(0,212,170,.06);border:1px solid rgba(0,212,170,.15);margin-bottom:12px;font-size:12px;color:#b0c0d8}
+.engine .dot{width:8px;height:8px;border-radius:50%;background:#f5a623;flex-shrink:0;animation:pl 1s infinite}
+@keyframes pl{0%,100%{opacity:1}50%{opacity:.3}}
+.engine.ok .dot{background:#00d4aa!important;animation:none!important}
+.engine.err .dot{background:#ff5c5c!important;animation:none!important}
+.engine.ok{color:#00d4aa}.engine.err{color:#ff5c5c}
+.card{background:#1a2332;border:1px solid #2a3a50;border-radius:20px;padding:20px}
+.zone{border:2px dashed #2a3a50;border-radius:16px;padding:40px 20px;text-align:center;cursor:pointer;transition:all .3s}
+.zone:hover{border-color:#00d4aa;background:rgba(0,212,170,.08)}
+.zone.has{border-style:solid;border-color:#00d4aa;padding:12px}
+.zone i{font-size:36px;color:#00d4aa;margin-bottom:8px;opacity:.6}
+.zone .a{font-size:14px;color:#b0c0d8}.zone .b{font-size:11px;color:#6a7a90;margin-top:4px}
+.fi{display:none;align-items:center;gap:10px}
+.fi.show{display:flex}
+.fn{font-size:13px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+.fd{width:28px;height:28px;border-radius:6px;border:1px solid #2a3a50;background:transparent;color:#6a7a90;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:12px}
+.fd:hover{border-color:#ff5c5c;color:#ff5c5c}
+.lang{display:flex;gap:8px;margin:12px 0}
+.lang button{flex:1;padding:8px;border-radius:8px;border:1px solid #2a3a50;background:transparent;color:#b0c0d8;font-size:13px;font-weight:500;cursor:pointer;transition:all .3s;font-family:inherit}
+.lang button:hover{border-color:#00d4aa;color:#00d4aa}
+.lang button.on{border-color:#00d4aa;background:rgba(0,212,170,.08);color:#00d4aa}
+.go{width:100%;padding:14px;border-radius:12px;border:none;background:linear-gradient(135deg,#00d4aa,#00b894);color:#0a0e1a;font-size:15px;font-weight:700;cursor:pointer;transition:all .3s;font-family:inherit}
+.go:hover{transform:translateY(-2px)}
+.go:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.st{font-size:11px;color:#6a7a90;margin-top:8px;text-align:center}
+.pr{display:none;margin-top:16px}.pr.show{display:block}
+.pb{height:5px;border-radius:3px;background:#2a3a50;overflow:hidden}
+.pf{height:100%;border-radius:3px;background:linear-gradient(90deg,#00d4aa,#0088cc);width:0%;transition:width .3s}
+.pt{font-size:12px;color:#6a7a90;margin-top:6px;text-align:center}
+.ps{font-size:11px;color:#6a7a90;margin-top:3px;text-align:center;opacity:.7}
+.rs{display:none;margin-top:20px;animation:up .4s ease}.rs.show{display:block}
 @keyframes up{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
 .rh{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:6px}
-.rt{font-size:14px;font-weight:600;color:var(--accent);display:flex;align-items:center;gap:6px}
+.rt{font-size:14px;font-weight:600;color:#00d4aa;display:flex;align-items:center;gap:6px}
 .ra{display:flex;gap:4px}
-.ab{padding:6px 12px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--fg2);font-size:11px;font-weight:500;cursor:pointer;transition:all .3s;font-family:inherit;display:flex;align-items:center;gap:4px}
-.ab:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-dim)}
-.ab.danger:hover{border-color:var(--error);color:var(--error);background:rgba(255,92,92,.08)}
-.tx{width:100%;min-height:180px;padding:14px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;color:var(--fg);font-family:'Noto Sans TC',sans-serif;font-size:14px;line-height:1.7;resize:vertical;outline:none;transition:all .3s}
-.tx:focus{border-color:var(--accent)}
-.his{margin-top:24px}
-.ht{font-size:13px;font-weight:600;color:var(--fg2);margin-bottom:8px;display:flex;align-items:center;gap:6px}
-.hc{padding:10px 14px;border-radius:8px;border:1px solid var(--border);background:var(--card);font-size:12px;color:var(--fg2);margin-bottom:6px;cursor:pointer;transition:all .3s;display:flex;gap:8px;align-items:flex-start}
-.hc:hover{border-color:var(--accent)}
-.hc .hi{color:var(--accent);flex-shrink:0;margin-top:1px}
-.hc .htxt{flex:1;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.hc .htime{font-size:9px;color:var(--muted);flex-shrink:0}
-.empty{text-align:center;padding:20px;color:var(--muted);font-size:12px}
-.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%)translateY(100px);background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px 18px;display:flex;align-items:center;gap:8px;font-size:12px;color:var(--fg);box-shadow:var(--shadow);z-index:200;transition:transform .4s;pointer-events:none;max-width:90%}
+.ab{padding:6px 10px;border-radius:6px;border:1px solid #2a3a50;background:transparent;color:#b0c0d8;font-size:11px;cursor:pointer;transition:all .3s;font-family:inherit;display:flex;align-items:center;gap:4px}
+.ab:hover{border-color:#00d4aa;color:#00d4aa}
+.tx{width:100%;min-height:150px;padding:14px;background:#111827;border:1px solid #2a3a50;border-radius:10px;color:#e8edf5;font-family:'Noto Sans TC',sans-serif;font-size:14px;line-height:1.7;resize:vertical;outline:none}
+.tx:focus{border-color:#00d4aa}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%)translateY(100px);background:#1a2332;border:1px solid #2a3a50;border-radius:10px;padding:10px 18px;display:flex;align-items:center;gap:8px;font-size:12px;color:#e8edf5;z-index:200;transition:transform .4s;pointer-events:none;max-width:90%}
 .toast.show{transform:translateX(-50%)translateY(0)}
-.toast i{color:var(--accent)}
+.toast i{color:#00d4aa}
 </style>
 </head>
 <body>
-<div class="container">
-<div class="top-bar">
-<div class="top-icon"><i class="fas fa-microphone-alt"></i></div>
-<div class="top-text"><h1>語音轉文字</h1><p>影片語音 → AI 即時轉寫，不上傳</p></div>
-<button class="theme-btn" id="themeBtn"><i class="fas fa-sun" id="themeIcon"></i></button>
+<div class="c">
+<div class="t">
+<div class="ti"><i class="fas fa-microphone-alt"></i></div>
+<div class="t1"><h1>語音轉文字</h1><p>影片語音 -> AI 轉寫，不上傳</p></div>
+</div>
+<div class="engine" id="eng">
+<div class="dot"></div>
+<span id="et">正在載入 AI 引擎...</span>
 </div>
 <div class="card">
 <div class="zone" id="zone" onclick="document.getElementById('fi').click()">
 <i class="fas fa-cloud-arrow-up"></i>
-<p class="t1" id="zt1">選擇影片或音檔</p>
-<p class="t2">MP4 / MOV / MP3 / WAV / M4A</p>
-<div class="file-info" id="finfo">
-<div class="file-icon"><i class="fas fa-video"></i></div>
-<div><div class="file-name" id="fn"></div></div>
-<button class="file-del" onclick="removeFile(event)"><i class="fas fa-xmark"></i></button>
+<p class="a" id="za">選擇影片或音檔</p>
+<p class="b">MP4 / MOV / MP3 / WAV / M4A</p>
+<div class="fi" id="fi2">
+<div class="fn" id="fn"></div>
+<button class="fd" onclick="rm(event)"><i class="fas fa-xmark"></i></button>
 </div>
 </div>
-<input type="file" id="fi" accept="video/*,audio/*" style="display:none" onchange="onFile(event)">
-<div class="lang-row">
-<button class="lang-btn on" data-lang="zh" onclick="pickLang('zh')">🇨🇳 中文</button>
-<button class="lang-btn" data-lang="th" onclick="pickLang('th')">🇹🇭 ไทย</button>
+<input type="file" id="fi" accept="video/*,audio/*" style="display:none" onchange="onF(event)">
+<div class="lang">
+<button class="on" data-l="zh" onclick="pk('zh')">🇨🇳 中文</button>
+<button data-l="th" onclick="pk('th')">🇹🇭 ไทย</button>
 </div>
-<div class="engine-status" id="engineStatus" style="margin:8px 0;font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px">
-<div class="engine-dot" id="engineDot" style="width:8px;height:8px;border-radius:50%;background:var(--warn);animation:pulse 1s infinite"></div>
-<span id="engineText">正在載入 AI 引擎...</span>
-</div>
-<style>
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
-.engine-status.ok .engine-dot{background:var(--accent)!important;animation:none!important}
-.engine-status.err .engine-dot{background:var(--error)!important;animation:none!important}
-</style>
-<button class="go-btn" id="goBtn" onclick="start()" disabled>🎤 開始轉文字</button>
-<div class="prog" id="prog">
-<div class="pbar"><div class="pfill" id="pfill"></div></div>
-<p class="ptext" id="ptext">準備中...</p>
-<p class="psub" id="psub"></p>
+<button class="go" id="go" onclick="s()" disabled>🎤 開始轉文字</button>
+<p class="st">Whisper tiny 模型 (~150MB)，僅首次下載</p>
+<div class="pr" id="pr">
+<div class="pb"><div class="pf" id="pf"></div></div>
+<p class="pt" id="pt">準備中...</p>
+<p class="ps" id="ps"></p>
 </div>
 </div>
-<div class="res" id="res">
+<div class="rs" id="rs">
 <div class="rh">
 <div class="rt"><i class="fas fa-file-lines"></i> 結果</div>
 <div class="ra">
 <button class="ab" onclick="cp()"><i class="fas fa-copy"></i> 複製</button>
 <button class="ab" onclick="dl()"><i class="fas fa-download"></i> 下載</button>
-<button class="ab" onclick="sv()"><i class="fas fa-bookmark"></i> 保存</button>
-<button class="ab danger" onclick="clr()"><i class="fas fa-eraser"></i> 清除</button>
 </div>
 </div>
 <textarea class="tx" id="tx" readonly></textarea>
-</div>
-<div class="his">
-<div class="ht"><i class="fas fa-clock-rotate-left" style="color:var(--muted)"></i> 歷史</div>
-<div id="hl"><div class="empty">尚無記錄</div></div>
 </div>
 </div>
 <div class="toast" id="toast"><i class="fas fa-check-circle"></i><span id="tm"></span></div>
 
 <script>
-// ===== 動態載入 Transformers.js（多重 CDN 備援） =====
-function loadScript(url) {
-  return new Promise((ok, fail) => {
-    const s = document.createElement('script');
-    s.src = url; s.onload = ok; s.onerror = () => fail(url);
+// ===== 嘗試所有 CDN 載入 Transformers.js =====
+const CDNS = [
+  'https://fastly.jsdelivr.net/npm/@xenova/transformers@2.17.2/dist/transformers.min.js',
+  'https://gcore.jsdelivr.net/npm/@xenova/transformers@2.17.2/dist/transformers.min.js',
+  'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2/dist/transformers.min.js',
+  'https://unpkg.com/@xenova/transformers@2.17.2/dist/transformers.min.js'
+];
+
+function loadScript(u){
+  return new Promise((ok,fail)=>{
+    const s=document.createElement('script');
+    s.src=u;s.onload=ok;s.onerror=()=>fail(u);
     document.head.appendChild(s);
   });
 }
 
-const CDN_URLS = [
-  'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2/dist/transformers.min.js',
-  'https://unpkg.com/@xenova/transformers@2.17.2/dist/transformers.min.js',
-  'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2/dist/transformers.min.js'
-];
-
-(async function loadEngine() {
-  const st = document.getElementById('engineStatus'), dt = document.getElementById('engineDot'),
-        tx = document.getElementById('engineText'), go = document.getElementById('goBtn');
-  
-  for (let i = 0; i < CDN_URLS.length; i++) {
-    tx.textContent = '📥 載入 AI 引擎 (' + (i+1) + '/' + CDN_URLS.length + ')...';
-    try {
-      await loadScript(CDN_URLS[i]);
-      if (window.transformers) {
-        st.className = 'engine-status ok';
-        dt.style.background = 'var(--accent)'; dt.style.animation = 'none';
-        tx.textContent = '✅ AI 引擎已就緒';
-        if (window.F) go.disabled = false;
-        console.log('🎤 Transformers.js 已載入從:', CDN_URLS[i]);
-        return;
-      }
-    } catch(e) {
-      console.warn('CDN 失敗:', e);
-    }
-  }
-  
-  // 全部失敗
-  st.className = 'engine-status err';
-  dt.style.background = 'var(--error)'; dt.style.animation = 'none';
-  tx.innerHTML = '❌ 無法載入 AI 引擎，<a href="#" onclick="location.reload()" style="color:var(--accent);text-decoration:underline">重新整理</a> | <span style="cursor:pointer;color:var(--accent);text-decoration:underline" onclick="loadEngineManual()">使用其他 CDN</span>';
-  
-  window.loadEngineManual = async function() {
-    tx.textContent = '嘗試其他載入方式...';
-    dt.style.background = 'var(--warn)'; dt.style.animation = 'pulse 1s infinite';
-    st.className = '';
-    // 嘗試 esm.sh 方式
-    try {
-      await import('https://esm.sh/@xenova/transformers@2.17.2');
-      // esm.sh 回傳的模組不同，需要檢查
-      if (window.transformers) {
-        st.className = 'engine-status ok';
-        dt.style.background = 'var(--accent)'; dt.style.animation = 'none';
-        tx.textContent = '✅ AI 引擎已就緒';
-        if (window.F) go.disabled = false;
-        return;
-      }
-    } catch(e) {
-      console.warn('esm.sh 也失敗:', e);
-    }
-    tx.textContent = '❌ 仍無法載入，請檢查網路連線後重新整理';
-  };
-})();
-
-// ===== 狀態 =====
-let F = null, L = 'zh', T = null, H = JSON.parse(localStorage.getItem('whisper-history')||'[]'), R = '';
-
-function $(id) { return document.getElementById(id); }
-function show(m, t) {
-  const el = $('toast'), ic = el.querySelector('i');
-  $('tm').textContent = m;
-  ic.className = t === 'err' ? 'fas fa-exclamation-circle' : 'fas fa-check-circle';
-  ic.style.color = t === 'err' ? '#ff5c5c' : 'var(--accent)';
-  el.classList.add('show');
-  clearTimeout(el._t);
-  el._t = setTimeout(() => el.classList.remove('show'), 3000);
-}
-
-// 檔案
-function onFile(e) {
-  const f = e.target.files[0];
-  if (!f) return;
-  F = f;
-  $('fn').textContent = f.name;
-  $('finfo').classList.add('show');
-  $('zone').classList.add('has-file');
-  $('zt1').style.display = 'none';
-  $('goBtn').disabled = false;
-}
-function removeFile(e) {
-  e.stopPropagation();
-  F = null; $('fi').value = '';
-  $('finfo').classList.remove('show');
-  $('zone').classList.remove('has-file');
-  $('zt1').style.display = '';
-  $('goBtn').disabled = true;
-}
-function pickLang(l) {
-  L = l;
-  document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('on', b.dataset.lang === l));
-}
-
-// ===== 等待 Transformers.js 載入 =====
-(function waitEngine() {
-  const st = $('engineStatus'), dt = $('engineDot'), tx = $('engineText'), go = $('goBtn');
-  let tries = 0;
-  function check() {
-    if (window.transformers) {
-      st.className = 'engine-status ok';
-      dt.style.background = 'var(--accent)'; dt.style.animation = 'none';
-      tx.textContent = '✅ AI 引擎已就緒';
-      if (F) go.disabled = false;
-      console.log('🎤 Transformers.js 已載入');
+(function boot(){
+  const eng=$('eng'),et=$('et');
+  let idx=0;
+  async function next(){
+    if(window.transformers){
+      eng.className='engine ok';et.textContent='✅ AI 引擎已就緒';
+      if(window.F) $('go').disabled=false;
       return;
     }
-    tries++;
-    if (tries > 30) { // ~15秒
-      st.className = 'engine-status err';
-      dt.style.background = 'var(--error)'; dt.style.animation = 'none';
-      tx.innerHTML = '❌ 載入失敗，<a href="#" onclick="location.reload()" style="color:var(--accent);text-decoration:underline">點擊重新載入</a>';
+    if(idx>=CDNS.length){
+      eng.className='engine err';
+      et.innerHTML='❌ 無法載入 AI 引擎，<a href="#" onclick="location.reload()" style="color:#00d4aa;text-decoration:underline">重新載入</a>';
       return;
     }
-    setTimeout(check, 500);
+    const u=CDNS[idx++];
+    et.textContent='📥 載入中 ('+idx+'/'+CDNS.length+')...';
+    try{await loadScript(u)}catch(e){}
+    setTimeout(next,300); // 等腳本執行完
   }
-  check();
+  next();
 })();
 
-// ===== 日夜 =====
-const st = localStorage.getItem('whisper-theme');
-if (st === 'light') document.documentElement.setAttribute('data-theme', 'light');
-$('themeBtn').onclick = () => {
-  const d = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
-  document.documentElement.setAttribute('data-theme', d);
-  localStorage.setItem('whisper-theme', d);
-  $('themeIcon').className = d === 'light' ? 'fas fa-moon' : 'fas fa-sun';
-};
+// ===== 工具函數 =====
+function $(i){return document.getElementById(i)}
+function msg(m,t){
+  const e=$('toast'),ic=e.querySelector('i');
+  $('tm').textContent=m;
+  ic.className=t==='err'?'fas fa-exclamation-circle':'fas fa-check-circle';
+  ic.style.color=t==='err'?'#ff5c5c':'#00d4aa';
+  e.classList.add('show');
+  clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove('show'),3000);
+}
+let F=null,L='zh',T=null,R='';
 
-// ===== 🔥 開始轉寫（最簡版） =====
-async function start() {
-  if (!F) { show('請先選檔案', 'err'); return; }
-  if (!window.transformers) { show('AI 引擎尚未就緒，請稍候或重新載入', 'err'); return; }
+function onF(e){
+  const f=e.target.files[0];if(!f)return;
+  F=f;$('fn').textContent=f.name;$('fi2').classList.add('show');
+  $('zone').classList.add('has');$('za').style.display='none';
+  if(window.transformers)$('go').disabled=false;
+}
+function rm(e){
+  e.stopPropagation();F=null;$('fi').value='';
+  $('fi2').classList.remove('show');$('zone').classList.remove('has');
+  $('za').style.display='';$('go').disabled=true;
+}
+function pk(l){L=l;document.querySelectorAll('.lang button').forEach(b=>b.classList.toggle('on',b.dataset.l===l))}
 
-  const btn = $('goBtn'), prog = $('prog'), fill = $('pfill'), pt = $('ptext'), ps = $('psub'), res = $('res');
-  btn.disabled = true; btn.textContent = '⏳ 處理中...';
-  prog.classList.add('show'); res.classList.remove('show');
-  fill.style.width = '0%'; pt.textContent = '初始化...'; ps.textContent = '';
+async function s(){
+  if(!F){msg('請先選檔案','err');return}
+  if(!window.transformers){msg('引擎未就緒','err');return}
+  const go=$('go'),pr=$('pr'),pf=$('pf'),pt=$('pt'),ps=$('ps'),rs=$('rs');
+  go.disabled=true;go.textContent='⏳ 處理中...';
+  pr.classList.add('show');rs.classList.remove('show');
+  pf.style.width='0%';
 
-  try {
-    // Step 1: 解碼音訊
-    pt.textContent = '⏳ 解碼音訊...';
-    ps.textContent = '從檔案中提取聲音';
-    fill.style.width = '5%';
-    
-    const buf = await F.arrayBuffer();
-    let audioData = null;
+  try{
+    // 1. 解碼
+    pt.textContent='⏳ 解碼音訊...';ps.textContent='從檔案提取聲音';
+    pf.style.width='5%';
+    const buf=await F.arrayBuffer();
+    const ctx=new AudioContext();
+    const ab=await ctx.decodeAudioData(buf.slice(0));
+    const ad=toMono16k(ab);
+    ctx.close();
+    pf.style.width='25%';ps.textContent='音訊解碼完成 ('+(ad.length/16000).toFixed(1)+' 秒)';
 
-    // 方法A: decodeAudioData
-    try {
-      const ctx = new AudioContext();
-      const ab = await ctx.decodeAudioData(buf.slice(0));
-      audioData = toMono16k(ab);
-      ctx.close();
-      ps.textContent = '音訊解碼完成 (' + (audioData.length/16000).toFixed(1) + ' 秒)';
-    } catch(e) {
-      ps.textContent = '解碼器失敗，改用緩衝方式...';
-    }
-
-    // 方法B: 直接傳 PCM (某些瀏覽器decodeAudioData不吃影片)
-    if (!audioData) {
-      ps.textContent = '嘗試直接處理原始音訊...';
-      // 如果decodeAudioData失敗，用最簡單的方式：嘗試再解碼一次
-      try {
-        const ctx = new AudioContext();
-        const ab = await ctx.decodeAudioData(buf.slice(0));
-        audioData = toMono16k(ab);
-        ctx.close();
-      } catch(e2) {
-        throw new Error('瀏覽器無法解碼此檔案格式');
-      }
-    }
-    
-    fill.style.width = '25%';
-
-    // Step 2: 載入 Whisper
-    pt.textContent = '📥 載入 AI 模型中...';
-    ps.textContent = 'Whisper tiny (~150MB，僅首次)';
-    fill.style.width = '30%';
-    
-    if (!T) {
-      const { pipeline, env } = window.transformers;
-      env.allowLocalModels = false;
-      env.useBrowserCache = true;
-      
-      T = await pipeline('automatic-speech-recognition', 'Xenova/whisper-tiny', {
-        progress_callback: p => {
-          if (p?.status === 'progress') {
-            const w = 30 + (p.progress||0) * 30;
-            fill.style.width = Math.min(w, 59) + '%';
-            pt.textContent = '📥 下載中 ' + Math.round((p.progress||0)*100) + '%';
+    // 2. 載入 Whisper
+    pt.textContent='📥 載入 AI 模型...';ps.textContent='Whisper tiny (~150MB)';
+    pf.style.width='30%';
+    if(!T){
+      const{pipeline,env}=window.transformers;
+      env.allowLocalModels=false;env.useBrowserCache=true;
+      T=await pipeline('automatic-speech-recognition','Xenova/whisper-tiny',{
+        progress_callback:p=>{
+          if(p?.status==='progress'){
+            const w=30+(p.progress||0)*30;
+            pf.style.width=Math.min(w,59)+'%';
+            pt.textContent='📥 下載 '+Math.round((p.progress||0)*100)+'%';
           }
         }
       });
     }
-    fill.style.width = '60%';
+    pf.style.width='60%';
 
-    // Step 3: 辨識
-    pt.textContent = '🧠 正在辨識...';
-    ps.textContent = '請稍候，長影片需較長時間';
-    fill.style.width = '65%';
-    
-    const lm = { zh: 'zh', th: 'th' };
-    const out = await T(audioData, {
-      chunk_length_s: 30, stride_length_s: 5,
-      language: lm[L] || 'zh', task: 'transcribe',
-      callback: cb => {
-        if (cb?.status === 'progress') {
-          const w = 65 + (cb.progress||0) * 30;
-          fill.style.width = Math.min(w, 95) + '%';
-          pt.textContent = '🧠 辨識中 ' + Math.round((cb.progress||0)*100) + '%';
+    // 3. 辨識
+    pt.textContent='🧠 辨識中...';ps.textContent='視長度而定，請稍候';
+    pf.style.width='65%';
+    const lm={zh:'zh',th:'th'};
+    const out=await T(ad,{
+      chunk_length_s:30,stride_length_s:5,
+      language:lm[L]||'zh',task:'transcribe',
+      callback:cb=>{
+        if(cb?.status==='progress'){
+          const w=65+(cb.progress||0)*30;
+          pf.style.width=Math.min(w,95)+'%';
+          pt.textContent='🧠 '+Math.round((cb.progress||0)*100)+'%';
         }
       }
     });
-
-    fill.style.width = '100%';
-    pt.textContent = '✅ 完成！';
-    ps.textContent = '';
-
-    R = out?.text || '';
-    if (!R && out?.chunks) R = out.chunks.map(c => c.text).join(' ');
-
-    if (R) {
-      $('tx').value = R;
-      $('tx').readOnly = false;
-      res.classList.add('show');
-      setTimeout(() => res.scrollIntoView({ behavior:'smooth' }), 200);
-      show('轉寫完成 ✓');
-    } else {
-      show('未辨識到語音', 'err');
-    }
-  } catch(e) {
-    console.error('Error:', e);
-    pt.textContent = '❌ 失敗';
-    ps.textContent = e.message || String(e);
-    show('處理失敗', 'err');
-  } finally {
-    btn.disabled = false; btn.textContent = '🎤 開始轉文字';
-  }
+    pf.style.width='100%';pt.textContent='✅ 完成！';ps.textContent='';
+    R=out?.text||'';
+    if(!R&&out?.chunks)R=out.chunks.map(c=>c.text).join(' ');
+    if(R){$('tx').value=R;rs.classList.add('show');setTimeout(()=>rs.scrollIntoView({behavior:'smooth'}),200);msg('完成 ✓')}
+    else msg('未辨識到語音','err');
+  }catch(e){
+    console.error(e);pt.textContent='❌ 失敗';ps.textContent=e.message||String(e);
+    msg('處理失敗','err');
+  }finally{go.disabled=false;go.textContent='🎤 開始轉文字'}
 }
 
-// 轉 16kHz 單聲道
-function toMono16k(b) {
-  const sr = 16000, ch = b.numberOfChannels, osr = b.sampleRate, ol = b.length;
-  let mono;
-  if (ch === 1) { mono = b.getChannelData(0); }
-  else {
-    mono = new Float32Array(ol);
-    for (let i = 0; i < ol; i++) { let s = 0; for (let c = 0; c < ch; c++) s += b.getChannelData(c)[i]; mono[i] = s / ch; }
-  }
-  if (osr === sr) return mono;
-  const ratio = osr / sr, nl = Math.floor(mono.length / ratio), res = new Float32Array(nl);
-  for (let i = 0; i < nl; i++) {
-    const src = i * ratio, lo = Math.floor(src), hi = Math.min(lo+1, mono.length-1), f = src - lo;
-    res[i] = mono[lo] * (1-f) + mono[hi] * f;
-  }
+function toMono16k(b){
+  const sr=16000,ch=b.numberOfChannels,osr=b.sampleRate,ol=b.length;
+  let m;
+  if(ch===1)m=b.getChannelData(0);
+  else{m=new Float32Array(ol);for(let i=0;i<ol;i++){let s=0;for(let c=0;c<ch;c++)s+=b.getChannelData(c)[i];m[i]=s/ch}}
+  if(osr===sr)return m;
+  const r=osr/sr,nl=Math.floor(m.length/r),res=new Float32Array(nl);
+  for(let i=0;i<nl;i++){const s=i*r,lo=Math.floor(s),hi=Math.min(lo+1,m.length-1),f=s-lo;res[i]=m[lo]*(1-f)+m[hi]*f}
   return res;
 }
 
-// 按鈕
-function cp() { if (!R) return; navigator.clipboard.writeText(R).then(()=>show('已複製')).catch(()=>show('複製失敗','err')); }
-function dl() {
-  if (!R) return;
-  const b = new Blob([R], {type:'text/plain;charset=utf-8'});
-  const a = document.createElement('a'); a.href = URL.createObjectURL(b);
-  a.download = '轉寫_'+new Date().toISOString().slice(0,10).replace(/-/g,'')+'.txt';
-  document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(a.href);
-  show('已下載');
+function cp(){if(!R)return;navigator.clipboard.writeText(R).then(()=>msg('已複製'))}
+function dl(){
+  if(!R)return;
+  const b=new Blob([R],{type:'text/plain;charset=utf-8'}),a=document.createElement('a');
+  a.href=URL.createObjectURL(b);a.download='轉寫_'+new Date().toISOString().slice(0,10).replace(/-/g,'')+'.txt';
+  document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(a.href);msg('已下載');
 }
-function sv() {
-  if (!R) { show('沒內容','err'); return; }
-  H.unshift({id:Date.now(),text:R.substring(0,200),name:F?.name||'',time:new Date().toLocaleString('zh-TW')});
-  if (H.length > 20) H.pop();
-  localStorage.setItem('whisper-history', JSON.stringify(H));
-  renderH(); show('已保存 ✓');
-}
-function clr() { R = ''; $('tx').value = ''; $('res').classList.remove('show'); show('已清除'); }
 
-// 歷史
-function renderH() {
-  const el = $('hl');
-  if (!H.length) { el.innerHTML = '<div class="empty">尚無記錄</div>'; return; }
-  el.innerHTML = H.map(h => '<div class="hc" onclick="ld('+h.id+')"><div class="hi"><i class="fas fa-file-audio"></i></div><div class="htxt">'+h.text.replace(/\n/g,' ')+'</div></div>').join('');
-}
-function ld(id) {
-  const h = H.find(r => r.id === id); if (!h) return;
-  R = h.text; $('tx').value = h.text; $('res').classList.add('show');
-  $('res').scrollIntoView({behavior:'smooth'});
-}
-function clearHistory() { H = []; localStorage.removeItem('whisper-history'); renderH(); show('已清空'); }
-function clearAllH() { H = []; localStorage.removeItem('whisper-history'); renderH(); show('已清空'); }
-
-renderH();
-console.log('🎤 語音轉文字 v3 已準備');
+console.log('🎤 語音轉文字 v4 已準備');
 </script>
 </body>
 </html>
