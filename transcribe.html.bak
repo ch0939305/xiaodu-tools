@@ -463,18 +463,7 @@ window.clearHistory = function() {
   showToast('記錄已清空');
 };
 
-// 檢查 Transformers.js
-function checkTransformers() {
-  if (window.transformers) {
-    transformersReady = true;
-    console.log('🎤 Transformers.js 已載入');
-  } else {
-    setTimeout(checkTransformers, 500);
-  }
-}
-
 renderHistory();
-checkTransformers();
 
 window.toggleTheme = function() {
   const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
