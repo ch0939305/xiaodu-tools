@@ -324,8 +324,8 @@ window.startTranscribe = async function() {
       stride_length_s: 5,
       language: langMap[selectedLang] || 'zh',
       task: 'transcribe',
-      callback_function: (cb) => {
-        if (cb.status === 'progress') {
+      callback: (cb) => {
+        if (cb?.status === 'progress') {
           const prog = 65 + (cb.progress || 0) * 30;
           fill.style.width = Math.min(prog, 95) + '%';
           status.textContent = `🧠 辨識中... ${Math.round((cb.progress || 0) * 100)}%`;
@@ -337,10 +337,9 @@ window.startTranscribe = async function() {
     status.textContent = '✅ 轉寫完成！';
     sub.textContent = '';
     
-    resultText = output.text || output.chunks?.map(c => c.text).join(' ') || '';
-    if (!resultText) {
-      // 嘗試從 full 結果取
-      resultText = output?.chunks?.map?.(c => c.text).join(' ') || output?.text || '';
+    resultText = output?.text || '';
+    if (!resultText && output?.chunks) {
+      resultText = output.chunks.map(c => c.text).join(' ');
     }
     
     if (resultText) {
@@ -362,62 +361,45 @@ window.startTranscribe = async function() {
   }
 };
 
-// ===== 音訊提取（瀏覽器內解碼） =====
+// ===== 音訊提取（支援影片 + 音檔） =====
 async function extractAudio(file) {
-  const arrayBuffer = await file.arrayBuffer();
+  const url = URL.createObjectURL(file);
   
-  // 用 AudioContext 解碼音訊
-  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
-  
-  // 轉為 16kHz 單聲道 Float32Array（Whisper 所需格式）
-  const targetSampleRate = 16000;
-  const numChannels = audioBuffer.numberOfChannels;
-  const originalSampleRate = audioBuffer.sampleRate;
-  const originalLength = audioBuffer.length;
-  
-  // 混音為單聲道
-  const channelData = [];
-  for (let ch = 0; ch < numChannels; ch++) {
-    channelData.push(audioBuffer.getChannelData(ch));
-  }
-  
-  let monoData;
-  if (numChannels === 1) {
-    monoData = channelData[0];
-  } else {
-    monoData = new Float32Array(originalLength);
-    for (let i = 0; i < originalLength; i++) {
-      let sum = 0;
-      for (let ch = 0; ch < numChannels; ch++) {
-        sum += channelData[ch][i];
+  return new Promise((resolve, reject) => {
+    // 用 <audio> 元素解碼（支援 video/audio 格式）
+    const audioEl = new Audio();
+    audioEl.src = url;
+    audioEl.crossOrigin = 'anonymous';
+    audioEl.preload = 'auto';
+    
+    audioEl.onloadedmetadata = () => {
+      const duration = audioEl.duration;
+      if (!duration || duration === Infinity) {
+        reject(new Error('無法讀取音訊長度'));
+        return;
       }
-      monoData[i] = sum / numChannels;
-    }
-  }
-  
-  // 重採樣到 16kHz
-  if (originalSampleRate === targetSampleRate) {
-    return monoData;
-  }
-  
-  const ratio = originalSampleRate / targetSampleRate;
-  const newLength = Math.floor(monoData.length / ratio);
-  const result = new Float32Array(newLength);
-  
-  for (let i = 0; i < newLength; i++) {
-    const srcIndex = i * ratio;
-    const srcIndexF = Math.floor(srcIndex);
-    const frac = srcIndex - srcIndexF;
-    if (srcIndexF + 1 < monoData.length) {
-      result[i] = monoData[srcIndexF] * (1 - frac) + monoData[srcIndexF + 1] * frac;
-    } else {
-      result[i] = monoData[srcIndexF] || 0;
-    }
-  }
-  
-  audioCtx.close();
-  return result;
+      
+      const targetSR = 16000;
+      const totalSamples = Math.ceil(duration * targetSR);
+      const offlineCtx = new OfflineAudioContext(1, totalSamples, targetSR);
+      const source = offlineCtx.createMediaElementSource(audioEl);
+      source.connect(offlineCtx.destination);
+      
+      offlineCtx.startRendering().then((buffer) => {
+        audioEl.pause();
+        audioEl.src = '';
+        URL.revokeObjectURL(url);
+        resolve(buffer.getChannelData(0));
+      }).catch(reject);
+      
+      audioEl.play().catch(reject);
+    };
+    
+    audioEl.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error('無法載入音訊'));
+    };
+  });
 }
 
 // ===== 複製 =====
