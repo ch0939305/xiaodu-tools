@@ -1,0 +1,1199 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CodeForge · 代碼解釋器</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+/* ========== CSS 變量 - 暗色主題 ========== */
+:root {
+--bg: #0a0e17;
+--bg2: #0f1523;
+--bg3: #141c2e;
+--card: #111927;
+--card2: #162033;
+--border: #1e2d47;
+--border2: #263754;
+--fg: #e2eaf5;
+--fg2: #c0cce0;
+--muted: #5a7194;
+--accent: #00e8a2;
+--accent2: #00ffb8;
+--accent-dim: rgba(0, 232, 162, 0.08);
+--accent-glow: rgba(0, 232, 162, 0.15);
+--warn: #ff6b6b;
+--warn2: #ff8e8e;
+--info: #64b5f6;
+--tab-active: #00e8a2;
+--tab-bg: rgba(0, 232, 162, 0.06);
+--editor-bg: #0c1019;
+--line-num: #2e4060;
+--gutter: #111a28;
+--selection: rgba(0, 232, 162, 0.12);
+--scrollbar: #1e2d47;
+--scrollbar-hover: #2a4060;
+--shadow: 0 8px 40px rgba(0, 0, 0, 0.5);
+--preview-bg: #ffffff;
+--toast-bg: #1a2540;
+}
+/* ========== 亮色主題 ========== */
+[data-theme="light"] {
+--bg: #f4f1ec;
+--bg2: #ebe7e0;
+--bg3: #e2ddd5;
+--card: #ffffff;
+--card2: #f8f6f3;
+--border: #d8d2c8;
+--border2: #c8c0b4;
+--fg: #1a1612;
+--fg2: #3d3630;
+--muted: #8a8078;
+--accent: #0d9b6a;
+--accent2: #0bb87e;
+--accent-dim: rgba(13, 155, 106, 0.06);
+--accent-glow: rgba(13, 155, 106, 0.1);
+--warn: #d94040;
+--warn2: #e55a5a;
+--info: #2979c9;
+--tab-active: #0d9b6a;
+--tab-bg: rgba(13, 155, 106, 0.06);
+--editor-bg: #faf8f5;
+--line-num: #c4bbb0;
+--gutter: #f0ece6;
+--selection: rgba(13, 155, 106, 0.1);
+--scrollbar: #ccc5ba;
+--scrollbar-hover: #b8b0a4;
+--shadow: 0 8px 40px rgba(0, 0, 0, 0.08);
+--preview-bg: #ffffff;
+--toast-bg: #ffffff;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+font-family: 'Space Grotesk', sans-serif;
+background: var(--bg);
+color: var(--fg);
+height: 100vh;
+overflow: hidden;
+transition: background 0.5s, color 0.5s;
+}
+/* ========== 滾動條 ========== */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--scrollbar); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--scrollbar-hover); }
+/* ========== 頂部工具列 ========== */
+.toolbar {
+height: 54px;
+background: var(--card);
+border-bottom: 1px solid var(--border);
+display: flex;
+align-items: center;
+padding: 0 16px;
+gap: 8px;
+transition: background 0.5s, border-color 0.5s;
+position: relative;
+z-index: 20;
+}
+.brand {
+display: flex;
+align-items: center;
+gap: 10px;
+margin-right: 12px;
+flex-shrink: 0;
+}
+.brand-icon {
+width: 32px; height: 32px;
+background: linear-gradient(135deg, var(--accent), var(--accent2));
+border-radius: 8px;
+display: flex;
+align-items: center;
+justify-content: center;
+color: #080c14;
+font-size: 15px;
+font-weight: 700;
+box-shadow: 0 2px 12px var(--accent-glow);
+}
+.brand-name {
+font-size: 16px;
+font-weight: 700;
+letter-spacing: 0.5px;
+color: var(--fg);
+}
+.brand-tag {
+font-size: 10px;
+color: var(--muted);
+background: var(--accent-dim);
+padding: 2px 6px;
+border-radius: 4px;
+font-weight: 500;
+}
+.divider-v {
+width: 1px;
+height: 24px;
+background: var(--border);
+margin: 0 4px;
+flex-shrink: 0;
+}
+/* 工具按鈕 */
+.tool-btn {
+height: 34px;
+padding: 0 14px;
+border-radius: 8px;
+border: 1px solid var(--border);
+background: transparent;
+color: var(--fg2);
+font-size: 13px;
+font-family: inherit;
+cursor: pointer;
+transition: all 0.25s;
+display: flex;
+align-items: center;
+gap: 7px;
+white-space: nowrap;
+flex-shrink: 0;
+}
+.tool-btn:hover {
+border-color: var(--accent);
+color: var(--accent);
+background: var(--accent-dim);
+}
+.tool-btn.primary {
+background: linear-gradient(135deg, var(--accent), var(--accent2));
+color: #080c14;
+border-color: transparent;
+font-weight: 600;
+}
+.tool-btn.primary:hover {
+box-shadow: 0 4px 20px var(--accent-glow);
+transform: translateY(-1px);
+}
+.tool-btn.danger:hover {
+border-color: var(--warn);
+color: var(--warn);
+background: rgba(255, 107, 107, 0.06);
+}
+.tool-btn i { font-size: 13px; }
+.tool-spacer { flex: 1; }
+/* 日夜切換 */
+.theme-toggle {
+width: 52px;
+height: 28px;
+border-radius: 14px;
+background: var(--bg3);
+border: 1px solid var(--border);
+cursor: pointer;
+position: relative;
+transition: all 0.4s;
+flex-shrink: 0;
+}
+.theme-toggle:hover {
+border-color: var(--accent);
+}
+.toggle-thumb {
+position: absolute;
+top: 3px;
+left: 3px;
+width: 20px;
+height: 20px;
+border-radius: 50%;
+background: var(--accent);
+transition: all 0.4s cubic-bezier(0.68, -0.2, 0.27, 1.2);
+display: flex;
+align-items: center;
+justify-content: center;
+font-size: 10px;
+color: #080c14;
+}
+[data-theme="light"] .toggle-thumb {
+left: 27px;
+}
+/* ========== 主區域 ========== */
+.main-area {
+display: flex;
+height: calc(100vh - 54px);
+transition: all 0.3s;
+}
+/* ========== 編輯器面板 ========== */
+.editor-panel {
+width: 50%;
+display: flex;
+flex-direction: column;
+border-right: 1px solid var(--border);
+transition: border-color 0.5s, width 0.3s;
+min-width: 280px;
+position: relative;
+}
+/* 標籤列 */
+.tab-bar {
+height: 40px;
+background: var(--bg2);
+border-bottom: 1px solid var(--border);
+display: flex;
+align-items: stretch;
+padding: 0 8px;
+gap: 2px;
+transition: background 0.5s, border-color 0.5s;
+}
+.tab-item {
+padding: 0 16px;
+display: flex;
+align-items: center;
+gap: 6px;
+font-size: 12.5px;
+font-weight: 500;
+color: var(--muted);
+cursor: pointer;
+border-bottom: 2px solid transparent;
+transition: all 0.25s;
+position: relative;
+font-family: inherit;
+}
+.tab-item:hover {
+color: var(--fg2);
+background: var(--accent-dim);
+}
+.tab-item.active {
+color: var(--tab-active);
+border-bottom-color: var(--tab-active);
+background: var(--tab-bg);
+}
+.tab-dot {
+width: 8px; height: 8px;
+border-radius: 50%;
+}
+.tab-dot.html { background: #ff6b6b; }
+.tab-dot.css { background: #64b5f6; }
+.tab-dot.js { background: #ffd93d; }
+/* 編輯器容器 */
+.editor-container {
+flex: 1;
+position: relative;
+overflow: hidden;
+background: var(--editor-bg);
+transition: background 0.5s;
+}
+.editor-wrap {
+display: flex;
+height: 100%;
+overflow: auto;
+}
+/* 行號 */
+.line-numbers {
+width: 48px;
+padding: 14px 8px 14px 0;
+text-align: right;
+font-family: 'JetBrains Mono', monospace;
+font-size: 13px;
+line-height: 1.65;
+color: var(--line-num);
+background: var(--gutter);
+user-select: none;
+flex-shrink: 0;
+border-right: 1px solid var(--border);
+transition: background 0.5s, border-color 0.5s;
+overflow: hidden;
+}
+.line-num {
+display: block;
+height: calc(13px * 1.65);
+}
+/* 代碼輸入 */
+.code-input {
+flex: 1;
+padding: 14px 16px;
+font-family: 'JetBrains Mono', monospace;
+font-size: 13px;
+line-height: 1.65;
+color: var(--fg);
+background: transparent;
+border: none;
+outline: none;
+resize: none;
+tab-size: 2;
+white-space: pre;
+overflow: auto;
+caret-color: var(--accent);
+}
+.code-input::selection {
+background: var(--selection);
+}
+.editor-placeholder {
+position: absolute;
+top: 14px;
+left: 64px;
+font-family: 'JetBrains Mono', monospace;
+font-size: 13px;
+line-height: 1.65;
+color: var(--muted);
+pointer-events: none;
+opacity: 0.5;
+}
+/* 拖動條 */
+.resizer {
+width: 5px;
+cursor: col-resize;
+background: var(--border);
+transition: background 0.3s;
+position: relative;
+z-index: 10;
+flex-shrink: 0;
+}
+.resizer:hover, .resizer.dragging {
+background: var(--accent);
+}
+.resizer::after {
+content: '';
+position: absolute;
+top: 50%;
+left: 50%;
+transform: translate(-50%, -50%);
+width: 3px;
+height: 32px;
+border-radius: 2px;
+background: var(--muted);
+opacity: 0;
+transition: opacity 0.3s;
+}
+.resizer:hover::after { opacity: 0.5; }
+/* ========== 預覽面板 ========== */
+.preview-panel {
+flex: 1;
+display: flex;
+flex-direction: column;
+min-width: 280px;
+transition: all 0.3s;
+}
+.preview-bar {
+height: 40px;
+background: var(--bg2);
+border-bottom: 1px solid var(--border);
+display: flex;
+align-items: center;
+padding: 0 12px;
+gap: 8px;
+transition: background 0.5s, border-color 0.5s;
+}
+.preview-title {
+font-size: 12.5px;
+font-weight: 600;
+color: var(--fg2);
+display: flex;
+align-items: center;
+gap: 6px;
+}
+.preview-title i { color: var(--accent); font-size: 12px; }
+.preview-url {
+flex: 1;
+height: 26px;
+border-radius: 6px;
+background: var(--bg);
+border: 1px solid var(--border);
+padding: 0 10px;
+font-size: 11px;
+color: var(--muted);
+font-family: 'JetBrains Mono', monospace;
+display: flex;
+align-items: center;
+gap: 6px;
+transition: all 0.3s;
+}
+.preview-url .lock { color: var(--accent); font-size: 10px; }
+.preview-url .url-text { opacity: 0.6; }
+.preview-actions {
+display: flex;
+gap: 4px;
+}
+.preview-btn {
+width: 28px; height: 28px;
+border-radius: 6px;
+border: 1px solid var(--border);
+background: transparent;
+color: var(--muted);
+display: flex;
+align-items: center;
+justify-content: center;
+cursor: pointer;
+font-size: 12px;
+transition: all 0.25s;
+}
+.preview-btn:hover {
+border-color: var(--accent);
+color: var(--accent);
+background: var(--accent-dim);
+}
+.preview-frame-wrap {
+flex: 1;
+background: var(--preview-bg);
+position: relative;
+overflow: hidden;
+}
+.preview-frame-wrap iframe {
+width: 100%;
+height: 100%;
+border: none;
+background: #fff;
+}
+/* 預覽載入動畫 */
+.preview-loading {
+position: absolute;
+top: 0; left: 0;
+width: 100%; height: 3px;
+background: transparent;
+z-index: 5;
+pointer-events: none;
+}
+.preview-loading.active {
+background: linear-gradient(90deg, transparent, var(--accent), transparent);
+animation: loadSlide 0.8s ease-in-out;
+}
+@keyframes loadSlide {
+0% { transform: translateX(-100%); }
+100% { transform: translateX(100%); }
+}
+/* 預覽空狀態 */
+.preview-empty {
+position: absolute;
+top: 50%; left: 50%;
+transform: translate(-50%, -50%);
+text-align: center;
+color: #999;
+}
+.preview-empty i { font-size: 48px; opacity: 0.2; margin-bottom: 12px; display: block; color: var(--muted); }
+.preview-empty p { font-size: 13px; color: var(--muted); opacity: 0.6; }
+/* 控制台 */
+.console-panel {
+height: 0;
+background: var(--card);
+border-top: 1px solid var(--border);
+transition: height 0.3s, background 0.5s, border-color 0.5s;
+overflow: hidden;
+display: flex;
+flex-direction: column;
+}
+.console-panel.open {
+height: 160px;
+}
+.console-header {
+height: 32px;
+display: flex;
+align-items: center;
+padding: 0 12px;
+background: var(--bg2);
+border-bottom: 1px solid var(--border);
+gap: 8px;
+flex-shrink: 0;
+}
+.console-title {
+font-size: 11px;
+font-weight: 600;
+color: var(--fg2);
+display: flex;
+align-items: center;
+gap: 6px;
+}
+.console-title i { color: var(--warn); font-size: 11px; }
+.console-badge {
+font-size: 10px;
+padding: 1px 6px;
+border-radius: 4px;
+background: var(--warn);
+color: #fff;
+font-weight: 600;
+display: none;
+}
+.console-badge.visible { display: inline; }
+.console-body {
+flex: 1;
+overflow-y: auto;
+padding: 8px 12px;
+font-family: 'JetBrains Mono', monospace;
+font-size: 12px;
+line-height: 1.6;
+}
+.console-line {
+padding: 2px 0;
+border-bottom: 1px solid rgba(255,255,255,0.03);
+display: flex;
+gap: 8px;
+}
+.console-line .cl-icon { flex-shrink: 0; width: 14px; text-align: center; }
+.console-line.log .cl-icon { color: var(--muted); }
+.console-line.warn .cl-icon { color: #ffd93d; }
+.console-line.error .cl-icon { color: var(--warn); }
+.console-line.info .cl-icon { color: var(--info); }
+.console-line .cl-text { color: var(--fg2); word-break: break-all; }
+.console-line.error .cl-text { color: var(--warn2); }
+.console-line.warn .cl-text { color: #ffd93d; }
+/* ========== Toast ========== */
+.toast-wrap {
+position: fixed;
+top: 66px;
+right: 16px;
+z-index: 999;
+display: flex;
+flex-direction: column;
+gap: 8px;
+}
+.toast {
+padding: 10px 16px;
+border-radius: 10px;
+background: var(--toast-bg);
+border: 1px solid var(--border);
+color: var(--fg);
+font-size: 13px;
+box-shadow: var(--shadow);
+display: flex;
+align-items: center;
+gap: 8px;
+animation: toastIn 0.3s ease-out;
+transition: opacity 0.3s, transform 0.3s;
+}
+.toast.success i { color: var(--accent); }
+.toast.error i { color: var(--warn); }
+.toast.info i { color: var(--info); }
+@keyframes toastIn {
+from { opacity: 0; transform: translateX(30px); }
+to { opacity: 1; transform: translateX(0); }
+}
+/* ========== 快捷鍵提示 ========== */
+.shortcuts-bar {
+position: absolute;
+bottom: 8px;
+left: 50%;
+transform: translateX(-50%);
+display: flex;
+gap: 12px;
+background: var(--card);
+border: 1px solid var(--border);
+border-radius: 8px;
+padding: 5px 14px;
+font-size: 11px;
+color: var(--muted);
+opacity: 0.7;
+z-index: 5;
+transition: opacity 0.3s;
+white-space: nowrap;
+}
+.shortcuts-bar:hover { opacity: 1; }
+.shortcuts-bar kbd {
+padding: 1px 5px;
+border-radius: 3px;
+background: var(--bg2);
+border: 1px solid var(--border);
+font-size: 10px;
+font-family: 'JetBrains Mono', monospace;
+}
+/* ========== 動畫背景裝飾 ========== */
+.bg-decor {
+position: fixed;
+top: 0; left: 0;
+width: 100%; height: 100%;
+pointer-events: none;
+z-index: 0;
+overflow: hidden;
+}
+.glow-orb {
+position: absolute;
+border-radius: 50%;
+filter: blur(100px);
+opacity: 0.15;
+transition: opacity 0.5s;
+}
+[data-theme="light"] .glow-orb { opacity: 0.06; }
+.glow-1 {
+width: 500px; height: 500px;
+background: var(--accent);
+top: -15%; left: -5%;
+animation: orbDrift 20s ease-in-out infinite;
+}
+.glow-2 {
+width: 400px; height: 400px;
+background: #ff6b6b;
+bottom: -10%; right: -5%;
+animation: orbDrift 25s ease-in-out infinite reverse;
+}
+@keyframes orbDrift {
+0%, 100% { transform: translate(0, 0); }
+33% { transform: translate(50px, -40px); }
+66% { transform: translate(-30px, 30px); }
+}
+/* ========== 確認對話框 ========== */
+.confirm-overlay {
+position: fixed;
+top: 0; left: 0;
+width: 100%; height: 100%;
+background: rgba(0, 0, 0, 0.6);
+backdrop-filter: blur(6px);
+z-index: 500;
+display: none;
+align-items: center;
+justify-content: center;
+}
+.confirm-overlay.show { display: flex; }
+.confirm-box {
+background: var(--card);
+border: 1px solid var(--border);
+border-radius: 16px;
+padding: 28px;
+max-width: 380px;
+width: 90%;
+text-align: center;
+box-shadow: var(--shadow);
+animation: modalPop 0.3s ease-out;
+}
+@keyframes modalPop {
+from { opacity: 0; transform: scale(0.92); }
+to { opacity: 1; transform: scale(1); }
+}
+.confirm-icon {
+width: 52px; height: 52px;
+border-radius: 50%;
+background: rgba(255, 107, 107, 0.1);
+border: 1px solid rgba(255, 107, 107, 0.2);
+display: flex;
+align-items: center;
+justify-content: center;
+margin: 0 auto 16px;
+color: var(--warn);
+font-size: 22px;
+}
+.confirm-title {
+font-size: 17px;
+font-weight: 700;
+margin-bottom: 8px;
+}
+.confirm-desc {
+font-size: 13px;
+color: var(--muted);
+margin-bottom: 22px;
+line-height: 1.5;
+}
+.confirm-btns {
+display: flex;
+gap: 10px;
+justify-content: center;
+}
+.confirm-btns button {
+padding: 9px 24px;
+border-radius: 8px;
+font-size: 13px;
+font-weight: 600;
+cursor: pointer;
+transition: all 0.25s;
+font-family: inherit;
+}
+.btn-cancel {
+background: transparent;
+border: 1px solid var(--border);
+color: var(--fg2);
+}
+.btn-cancel:hover {
+border-color: var(--fg2);
+}
+.btn-danger {
+background: var(--warn);
+border: none;
+color: #fff;
+}
+.btn-danger:hover {
+box-shadow: 0 4px 16px rgba(255, 107, 107, 0.3);
+transform: translateY(-1px);
+}
+/* ========== 響應式 ========== */
+@media (max-width: 768px) {
+.main-area { flex-direction: column; }
+.editor-panel { width: 100% !important; height: 50%; border-right: none; border-bottom: 1px solid var(--border); }
+.resizer { width: 100%; height: 5px; cursor: row-resize; }
+.preview-panel { height: 50%; }
+.brand-tag, .shortcuts-bar { display: none; }
+.tool-btn span { display: none; }
+}
+/* 減少動畫 */
+@media (prefers-reduced-motion: reduce) {
+*, *::before, *::after {
+animation-duration: 0.01ms !important;
+transition-duration: 0.01ms !important;
+}
+}
+</style>
+</head>
+<body>
+<!-- 背景裝飾 -->
+<div class="bg-decor">
+<div class="glow-orb glow-1"></div>
+<div class="glow-orb glow-2"></div>
+</div>
+<!-- Toast 容器 -->
+<div class="toast-wrap" id="toastWrap"></div>
+<!-- 確認對話框 -->
+<div class="confirm-overlay" id="confirmOverlay">
+<div class="confirm-box">
+<div class="confirm-icon"><i class="fas fa-trash-can"></i></div>
+<div class="confirm-title">清除所有代碼</div>
+<div class="confirm-desc">此操作將清空 HTML、CSS、JavaScript 全部代碼內容，且無法撤銷。確定繼續嗎？</div>
+<div class="confirm-btns">
+<button class="btn-cancel" onclick="closeConfirm()">取消</button>
+<button class="btn-danger" onclick="confirmClear()">確認清除</button>
+</div>
+</div>
+</div>
+<!-- 頂部工具列 -->
+<header class="toolbar">
+<div class="brand">
+<div class="brand-icon"><i class="fas fa-code"></i></div>
+<span class="brand-name">CodeForge</span>
+<span class="brand-tag">v2.0</span>
+</div>
+<div class="divider-v"></div>
+<button class="tool-btn primary" onclick="runCode()" title="運行代碼 (Ctrl+Enter)">
+<i class="fas fa-play"></i><span>運行</span>
+</button>
+<button class="tool-btn" onclick="runCodeLive()" title="即時預覽模式" id="liveBtn">
+<i class="fas fa-bolt"></i><span>即時</span>
+</button>
+<div class="divider-v"></div>
+<button class="tool-btn" onclick="formatCode()" title="格式化代碼">
+<i class="fas fa-wand-magic-sparkles"></i><span>格式化</span>
+</button>
+<button class="tool-btn" onclick="copyCode()" title="複製全部代碼">
+<i class="fas fa-copy"></i><span>複製</span>
+</button>
+<button class="tool-btn danger" onclick="showClearConfirm()" title="清除全部">
+<i class="fas fa-eraser"></i><span>清除</span>
+</button>
+<div class="tool-spacer"></div>
+<button class="tool-btn" onclick="toggleConsole()" id="consoleToggle" title="控制台">
+<i class="fas fa-terminal"></i><span>控制台</span>
+<span class="console-badge" id="consoleBadge">0</span>
+</button>
+<button class="tool-btn" onclick="toggleLayout()" title="切換佈局">
+<i class="fas fa-columns"></i>
+</button>
+<div class="divider-v"></div>
+<!-- 日夜切換 -->
+<div class="theme-toggle" onclick="toggleTheme()" title="日夜模式切換" role="switch" aria-label="切換日夜模式" tabindex="0">
+<div class="toggle-thumb" id="toggleThumb">
+<i class="fas fa-moon" id="themeIcon"></i>
+</div>
+</div>
+</header>
+<!-- 主區域 -->
+<main class="main-area" id="mainArea">
+<!-- 編輯器面板 -->
+<section class="editor-panel" id="editorPanel" aria-label="代碼編輯器">
+<div class="tab-bar" role="tablist">
+<div class="tab-item active" data-tab="html" onclick="switchTab('html')" role="tab" aria-selected="true">
+<span class="tab-dot html"></span> HTML
+</div>
+<div class="tab-item" data-tab="css" onclick="switchTab('css')" role="tab" aria-selected="false">
+<span class="tab-dot css"></span> CSS
+</div>
+<div class="tab-item" data-tab="js" onclick="switchTab('js')" role="tab" aria-selected="false">
+<span class="tab-dot js"></span> JavaScript
+</div>
+</div>
+<div class="editor-container">
+<div class="editor-wrap" id="editorWrap">
+<div class="line-numbers" id="lineNumbers" aria-hidden="true"></div>
+<textarea
+class="code-input"
+id="codeInput"
+spellcheck="false"
+autocomplete="off"
+autocorrect="off"
+autocapitalize="off"
+aria-label="代碼輸入區"
+></textarea>
+</div>
+<div class="shortcuts-bar">
+<span><kbd>Ctrl</kbd>+<kbd>Enter</kbd> 運行</span>
+<span><kbd>Ctrl</kbd>+<kbd>S</kbd> 即時模式</span>
+<span><kbd>Tab</kbd> 縮排</span>
+</div>
+</div>
+</section>
+<!-- 拖動條 -->
+<div class="resizer" id="resizer" aria-label="調整面板大小"></div>
+<!-- 預覽面板 -->
+<section class="preview-panel" id="previewPanel" aria-label="預覽區">
+<div class="preview-bar">
+<div class="preview-title">
+<i class="fas fa-eye"></i> 預覽
+</div>
+<div class="preview-url">
+<i class="fas fa-lock lock"></i>
+<span class="url-text">localhost:3000/preview</span>
+</div>
+<div class="preview-actions">
+<button class="preview-btn" onclick="refreshPreview()" title="重新整理">
+<i class="fas fa-rotate-right"></i>
+</button>
+<button class="preview-btn" onclick="openInNewTab()" title="在新分頁開啟">
+<i class="fas fa-up-right-from-square"></i>
+</button>
+</div>
+</div>
+<div class="preview-frame-wrap">
+<div class="preview-loading" id="previewLoading"></div>
+<iframe id="previewFrame" sandbox="allow-scripts allow-modals allow-same-origin" title="代碼預覽"></iframe>
+<div class="preview-empty" id="previewEmpty">
+<i class="fas fa-rocket"></i>
+<p>點擊「運行」或開啟「即時」模式預覽效果</p>
+</div>
+</div>
+<!-- 控制台 -->
+<div class="console-panel" id="consolePanel">
+<div class="console-header">
+<div class="console-title">
+<i class="fas fa-terminal"></i> 控制台
+</div>
+<span class="console-badge" id="consoleBadge2">0</span>
+<div style="flex:1;"></div>
+<button class="preview-btn" onclick="clearConsole()" title="清空控制台" style="width:24px;height:24px;font-size:10px;">
+<i class="fas fa-ban"></i>
+</button>
+</div>
+<div class="console-body" id="consoleBody"></div>
+</div>
+</section>
+</main>
+<script>
+// ========== 全域狀態 ==========
+const codes = {
+html: `<div class="container">\n <h1>Hello, CodeForge</h1>\n <p>開始編寫你的代碼，即時預覽效果</p>\n <button onclick="greet()">點擊問候</button>\n <div id="output"></div>\n</div>`,
+css: `* {\n margin: 0;\n padding: 0;\n box-sizing: border-box;\n}\n\nbody {\n min-height: 100vh;\n display: flex;\n align-items: center;\n justify-content: center;\n background: linear-gradient(135deg, #0f172a, #1e293b);\n font-family: system-ui, sans-serif;\n}\n\n.container {\n text-align: center;\n padding: 48px;\n border-radius: 20px;\n background: rgba(255,255,255,0.05);\n backdrop-filter: blur(10px);\n border: 1px solid rgba(255,255,255,0.1);\n}\n\nh1 {\n font-size: 36px;\n background: linear-gradient(135deg, #00e8a2, #00b4d8);\n -webkit-background-clip: text;\n -webkit-text-fill-color: transparent;\n margin-bottom: 12px;\n}\n\np {\n color: #94a3b8;\n margin-bottom: 24px;\n}\n\nbutton {\n padding: 12px 32px;\n border: none;\n border-radius: 10px;\n background: linear-gradient(135deg, #00e8a2, #00b4d8);\n color: #0f172a;\n font-size: 16px;\n font-weight: 700;\n cursor: pointer;\n transition: all 0.3s;\n}\n\nbutton:hover {\n transform: translateY(-2px);\n box-shadow: 0 8px 24px rgba(0,232,162,0.3);\n}\n\n#output {\n margin-top: 20px;\n font-size: 18px;\n color: #00e8a2;\n min-height: 28px;\n}`,
+js: `let count = 0;\n\nfunction greet() {\n count++;\n const output = document.getElementById('output');\n const messages = [\n '你好，世界！',\n '代碼讓一切可能',\n '繼續創造吧！',\n '無限可能等著你'\n ];\n const msg = messages[count % messages.length];\n output.textContent = msg;\n output.style.animation = 'none';\n output.offsetHeight; // 觸發回流\n output.style.animation = 'fadeIn 0.4s ease';\n console.log('問候次數：' + count);\n}\n\n// 添加動畫樣式\nconst style = document.createElement('style');\nstyle.textContent = \`\n @keyframes fadeIn {\n from { opacity: 0; transform: translateY(8px); }\n to { opacity: 1; transform: translateY(0); }\n }\n\`;\ndocument.head.appendChild(style);\n\nconsole.log('CodeForge 已準備就緒');`
+};
+let currentTab = 'html';
+let isLiveMode = false;
+let isDark = true;
+let consoleOpen = false;
+let consoleCount = 0;
+let liveTimer = null;
+// ========== DOM 引用 ==========
+const codeInput = document.getElementById('codeInput');
+const lineNumbers = document.getElementById('lineNumbers');
+const previewFrame = document.getElementById('previewFrame');
+const previewEmpty = document.getElementById('previewEmpty');
+const previewLoading = document.getElementById('previewLoading');
+const consoleBody = document.getElementById('consoleBody');
+// ========== 初始化 ==========
+function init() {
+codeInput.value = codes[currentTab];
+updateLineNumbers();
+codeInput.addEventListener('input', onCodeChange);
+codeInput.addEventListener('scroll', syncScroll);
+codeInput.addEventListener('keydown', handleKeyDown);
+// 自動運行一次
+setTimeout(() => runCode(), 300);
+}
+// ========== 標籤切換 ==========
+function switchTab(tab) {
+// 保存當前代碼
+codes[currentTab] = codeInput.value;
+currentTab = tab;
+// 更新標籤狀態
+document.querySelectorAll('.tab-item').forEach(el => {
+const isActive = el.dataset.tab === tab;
+el.classList.toggle('active', isActive);
+el.setAttribute('aria-selected', isActive);
+});
+// 載入代碼
+codeInput.value = codes[tab];
+updateLineNumbers();
+codeInput.focus();
+}
+// ========== 行號更新 ==========
+function updateLineNumbers() {
+const lines = codeInput.value.split('\n').length;
+let html = '';
+for (let i = 1; i <= lines; i++) {
+html += `<span class="line-num">${i}</span>`;
+}
+lineNumbers.innerHTML = html;
+}
+// ========== 滾動同步 ==========
+function syncScroll() {
+lineNumbers.scrollTop = codeInput.scrollTop;
+}
+// ========== 代碼變更 ==========
+function onCodeChange() {
+codes[currentTab] = codeInput.value;
+updateLineNumbers();
+if (isLiveMode) {
+clearTimeout(liveTimer);
+liveTimer = setTimeout(() => runCode(), 400);
+}
+}
+// ========== 鍵盤快捷鍵 ==========
+function handleKeyDown(e) {
+// Tab 縮排
+if (e.key === 'Tab') {
+e.preventDefault();
+const start = codeInput.selectionStart;
+const end = codeInput.selectionEnd;
+const val = codeInput.value;
+codeInput.value = val.substring(0, start) + '  ' + val.substring(end);
+codeInput.selectionStart = codeInput.selectionEnd = start + 2;
+onCodeChange();
+}
+// Ctrl+Enter 運行
+if (e.ctrlKey && e.key === 'Enter') {
+e.preventDefault();
+runCode();
+}
+// Ctrl+S 即時模式
+if (e.ctrlKey && e.key === 's') {
+e.preventDefault();
+runCodeLive();
+}
+}
+// ========== 運行代碼 ==========
+function runCode() {
+codes[currentTab] = codeInput.value;
+const fullCode = buildFullCode();
+// 顯示載入動畫
+previewLoading.classList.remove('active');
+void previewLoading.offsetWidth;
+previewLoading.classList.add('active');
+// 寫入 iframe
+previewFrame.srcdoc = fullCode;
+previewEmpty.style.display = 'none';
+showToast('代碼運行成功', 'success');
+}
+function buildFullCode() {
+// 注入控制台捕獲腳本
+const consoleScript = `
+<script>
+(function() {
+const origConsole = { log: console.log, warn: console.warn, error: console.error, info: console.info };
+function sendMsg(type, args) {
+try {
+window.parent.postMessage({ type: 'console', level: type, data: Array.from(args).map(a => {
+if (typeof a === 'object') return JSON.stringify(a, null, 2);
+return String(a);
+}).join(' ') }, '*');
+} catch(e) {}
+}
+console.log = function() { sendMsg('log', arguments); origConsole.log.apply(console, arguments); };
+console.warn = function() { sendMsg('warn', arguments); origConsole.warn.apply(console, arguments); };
+console.error = function() { sendMsg('error', arguments); origConsole.error.apply(console, arguments); };
+console.info = function() { sendMsg('info', arguments); origConsole.info.apply(console, arguments); };
+window.onerror = function(msg, url, line) {
+sendMsg('error', ['Error: ' + msg + ' (line ' + line + ')']);
+};
+})();
+<\/script>`;
+return `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><style>${codes.css}</style>${consoleScript}</head><body>${codes.html}<script>${codes.js}<\/script></body></html>`;
+}
+// ========== 即時模式 ==========
+function runCodeLive() {
+isLiveMode = !isLiveMode;
+const btn = document.getElementById('liveBtn');
+btn.classList.toggle('primary', isLiveMode);
+btn.classList.toggle('tool-btn', true);
+if (isLiveMode) {
+showToast('即時預覽模式已開啟', 'success');
+runCode();
+} else {
+showToast('即時預覽模式已關閉', 'info');
+clearTimeout(liveTimer);
+}
+}
+// ========== 格式化代碼 ==========
+function formatCode() {
+let code = codeInput.value;
+// 簡單格式化：統一縮排、去除多餘空行
+const lines = code.split('\n');
+let indent = 0;
+const formatted = [];
+const indentStr = '  ';
+for (let line of lines) {
+const trimmed = line.trim();
+if (!trimmed) { formatted.push(''); continue; }
+// 减少缩进（闭合标签或右大括号）
+if (trimmed.match(/^<\/|^}|^\]/) || trimmed.match(/^\)/)) {
+indent = Math.max(0, indent - 1);
+}
+formatted.push(indentStr.repeat(indent) + trimmed);
+// 增加缩进（开放标签或左大括号）
+if (trimmed.match(/<[^\/][^>]*[^\/]>\s*$/) || trimmed.match(/\{\s*$/) || trimmed.match(/\[\s*$/)) {
+indent++;
+}
+// 自闭合标签不增加
+if (trimmed.match(/<[^>]+\/>/)) {
+indent--;
+}
+}
+codeInput.value = formatted.join('\n');
+codes[currentTab] = codeInput.value;
+updateLineNumbers();
+showToast('代碼已格式化', 'success');
+}
+// ========== 複製代碼 ==========
+function copyCode() {
+const fullCode = buildFullCode();
+navigator.clipboard.writeText(fullCode).then(() => {
+showToast('完整代碼已複製到剪貼簿', 'success');
+}).catch(() => {
+showToast('複製失敗', 'error');
+});
+}
+// ========== 清除確認 ==========
+function showClearConfirm() {
+document.getElementById('confirmOverlay').classList.add('show');
+}
+function closeConfirm() {
+document.getElementById('confirmOverlay').classList.remove('show');
+}
+function confirmClear() {
+codes.html = '';
+codes.css = '';
+codes.js = '';
+codeInput.value = '';
+updateLineNumbers();
+previewFrame.srcdoc = '';
+previewEmpty.style.display = '';
+clearConsole();
+closeConfirm();
+showToast('所有代碼已清除', 'info');
+}
+// ========== 預覽操作 ==========
+function refreshPreview() {
+runCode();
+}
+function openInNewTab() {
+const fullCode = buildFullCode();
+const blob = new Blob([fullCode], { type: 'text/html' });
+const url = URL.createObjectURL(blob);
+window.open(url, '_blank');
+setTimeout(() => URL.revokeObjectURL(url), 5000);
+}
+// ========== 控制台 ==========
+function toggleConsole() {
+consoleOpen = !consoleOpen;
+document.getElementById('consolePanel').classList.toggle('open', consoleOpen);
+}
+function addConsoleLine(level, text) {
+const icons = { log: 'fa-chevron-right', warn: 'fa-triangle-exclamation', error: 'fa-circle-xmark', info: 'fa-circle-info' };
+const line = document.createElement('div');
+line.className = `console-line ${level}`;
+line.innerHTML = `<span class="cl-icon"><i class="fas ${icons[level] || icons.log}"></i></span><span class="cl-text">${escapeHtml(text)}</span>`;
+consoleBody.appendChild(line);
+consoleBody.scrollTop = consoleBody.scrollHeight;
+consoleCount++;
+updateConsoleBadge();
+}
+function updateConsoleBadge() {
+const badges = [document.getElementById('consoleBadge'), document.getElementById('consoleBadge2')];
+badges.forEach(b => {
+if (consoleCount > 0) {
+b.textContent = consoleCount;
+b.classList.add('visible');
+} else {
+b.classList.remove('visible');
+}
+});
+}
+function clearConsole() {
+consoleBody.innerHTML = '';
+consoleCount = 0;
+updateConsoleBadge();
+}
+function escapeHtml(text) {
+const d = document.createElement('div');
+d.textContent = text;
+return d.innerHTML;
+}
+// 監聽 iframe 的 console 訊息
+window.addEventListener('message', (e) => {
+if (e.data && e.data.type === 'console') {
+addConsoleLine(e.data.level, e.data.data);
+}
+});
+// ========== 日夜切換 ==========
+function toggleTheme() {
+isDark = !isDark;
+document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+const icon = document.getElementById('themeIcon');
+icon.className = isDark ? 'fas fa-moon' : 'fas fa-sun';
+showToast(isDark ? '已切換至夜間模式' : '已切換至日間模式', 'info');
+}
+// 支持鍵盤操作
+document.querySelector('.theme-toggle').addEventListener('keydown', (e) => {
+if (e.key === 'Enter' || e.key === ' ') {
+e.preventDefault();
+toggleTheme();
+}
+});
+// ========== 佈局切換 ==========
+let layoutMode = 0; // 0: 水平, 1: 垂直, 2: 僅預覽
+function toggleLayout() {
+layoutMode = (layoutMode + 1) % 3;
+const editor = document.getElementById('editorPanel');
+const resizer = document.getElementById('resizer');
+if (layoutMode === 0) {
+// 水平分屏
+editor.style.width = '50%';
+editor.style.display = 'flex';
+resizer.style.display = 'block';
+} else if (layoutMode === 1) {
+// 編輯器為主
+editor.style.width = '65%';
+editor.style.display = 'flex';
+resizer.style.display = 'block';
+} else {
+// 僅預覽
+editor.style.width = '0%';
+editor.style.display = 'none';
+resizer.style.display = 'none';
+}
+const labels = ['均衡分屏', '編輯為主', '僅預覽'];
+showToast(`佈局：${labels[layoutMode]}`, 'info');
+}
+// ========== 拖動調整大小 ==========
+const resizer = document.getElementById('resizer');
+const editorPanel = document.getElementById('editorPanel');
+let isResizing = false;
+resizer.addEventListener('mousedown', (e) => {
+isResizing = true;
+resizer.classList.add('dragging');
+document.body.style.cursor = 'col-resize';
+document.body.style.userSelect = 'none';
+});
+document.addEventListener('mousemove', (e) => {
+if (!isResizing) return;
+const containerWidth = document.getElementById('mainArea').offsetWidth;
+const newWidth = (e.clientX / containerWidth) * 100;
+const clamped = Math.max(25, Math.min(75, newWidth));
+editorPanel.style.width = clamped + '%';
+});
+document.addEventListener('mouseup', () => {
+if (isResizing) {
+isResizing = false;
+resizer.classList.remove('dragging');
+document.body.style.cursor = '';
+document.body.style.userSelect = '';
+}
+});
+// ========== Toast 通知 ==========
+function showToast(msg, type = 'info') {
+const wrap = document.getElementById('toastWrap');
+const icons = { success: 'fa-check-circle', error: 'fa-circle-xmark', info: 'fa-circle-info' };
+const toast = document.createElement('div');
+toast.className = `toast ${type}`;
+toast.innerHTML = `<i class="fas ${icons[type]}"></i> ${msg}`;
+wrap.appendChild(toast);
+setTimeout(() => {
+toast.style.opacity = '0';
+toast.style.transform = 'translateX(30px)';
+setTimeout(() => toast.remove(), 300);
+}, 2200);
+}
+// ========== 啟動 ==========
+init();
+</script>
+</body>
+</html>
