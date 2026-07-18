@@ -141,8 +141,70 @@ transition:background .3s,color .3s;
 </div>
 <div class="toast" id="toast"><i class="fas fa-check-circle"></i><span id="tm"></span></div>
 
-<script src="https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2/dist/transformers.min.js" onerror="this.onerror=null;this.src='https://unpkg.com/@xenova/transformers@2.17.2/dist/transformers.min.js'"></script>
 <script>
+// ===== 動態載入 Transformers.js（多重 CDN 備援） =====
+function loadScript(url) {
+  return new Promise((ok, fail) => {
+    const s = document.createElement('script');
+    s.src = url; s.onload = ok; s.onerror = () => fail(url);
+    document.head.appendChild(s);
+  });
+}
+
+const CDN_URLS = [
+  'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2/dist/transformers.min.js',
+  'https://unpkg.com/@xenova/transformers@2.17.2/dist/transformers.min.js',
+  'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2/dist/transformers.min.js'
+];
+
+(async function loadEngine() {
+  const st = document.getElementById('engineStatus'), dt = document.getElementById('engineDot'),
+        tx = document.getElementById('engineText'), go = document.getElementById('goBtn');
+  
+  for (let i = 0; i < CDN_URLS.length; i++) {
+    tx.textContent = '📥 載入 AI 引擎 (' + (i+1) + '/' + CDN_URLS.length + ')...';
+    try {
+      await loadScript(CDN_URLS[i]);
+      if (window.transformers) {
+        st.className = 'engine-status ok';
+        dt.style.background = 'var(--accent)'; dt.style.animation = 'none';
+        tx.textContent = '✅ AI 引擎已就緒';
+        if (window.F) go.disabled = false;
+        console.log('🎤 Transformers.js 已載入從:', CDN_URLS[i]);
+        return;
+      }
+    } catch(e) {
+      console.warn('CDN 失敗:', e);
+    }
+  }
+  
+  // 全部失敗
+  st.className = 'engine-status err';
+  dt.style.background = 'var(--error)'; dt.style.animation = 'none';
+  tx.innerHTML = '❌ 無法載入 AI 引擎，<a href="#" onclick="location.reload()" style="color:var(--accent);text-decoration:underline">重新整理</a> | <span style="cursor:pointer;color:var(--accent);text-decoration:underline" onclick="loadEngineManual()">使用其他 CDN</span>';
+  
+  window.loadEngineManual = async function() {
+    tx.textContent = '嘗試其他載入方式...';
+    dt.style.background = 'var(--warn)'; dt.style.animation = 'pulse 1s infinite';
+    st.className = '';
+    // 嘗試 esm.sh 方式
+    try {
+      await import('https://esm.sh/@xenova/transformers@2.17.2');
+      // esm.sh 回傳的模組不同，需要檢查
+      if (window.transformers) {
+        st.className = 'engine-status ok';
+        dt.style.background = 'var(--accent)'; dt.style.animation = 'none';
+        tx.textContent = '✅ AI 引擎已就緒';
+        if (window.F) go.disabled = false;
+        return;
+      }
+    } catch(e) {
+      console.warn('esm.sh 也失敗:', e);
+    }
+    tx.textContent = '❌ 仍無法載入，請檢查網路連線後重新整理';
+  };
+})();
+
 // ===== 狀態 =====
 let F = null, L = 'zh', T = null, H = JSON.parse(localStorage.getItem('whisper-history')||'[]'), R = '';
 
