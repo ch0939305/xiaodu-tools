@@ -94,7 +94,7 @@ document.getElementById('thBtn').onclick=()=>{
 };
 
 // 資料 — Excel 格式：每個項目一列，含 1D~6D + 備註
-const LABELS = ['尺寸','模具類型','模具編號','模具位置','對應產品','cad編號'];
+const LABELS = ['尺寸','類型','編號','位置','產品','cad'];
 let data = JSON.parse(localStorage.getItem('mold-data')) || [];
 
 function $(id){return document.getElementById(id)}
