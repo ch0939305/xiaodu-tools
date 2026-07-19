@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>模具記錄</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+:root {
+--bg: #f5f2ed; --card: #fff; --th-bg: #e8e3dc;
+--border: #cdc5ba; --border2: #ddd8d0;
+--fg: #2a221c; --fg2: #5a4e42; --muted: #a09888;
+--accent: #c0392b; --accent-dim: rgba(192,57,43,.08);
+--input-bg: #fff; --shadow: 0 1px 4px rgba(0,0,0,.06);
+}
+[data-theme="dark"] {
+--bg: #0a0e14; --card: #1a2030; --th-bg: #232b3d;
+--border: #2a3a50; --border2: #324260;
+--fg: #e8eaed; --fg2: #b0c0d8; --muted: #6b7280;
+--accent: #e74c3c; --accent-dim: rgba(231,76,60,.1);
+--input-bg: #111827; --shadow: 0 1px 4px rgba(0,0,0,.3);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--fg);min-height:100vh;transition:background .3s,color .3s;padding:12px}
+.c{max-width:100%;margin:0 auto}
+/* Header */
+.hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;padding:8px 0}
+.hl{display:flex;align-items:center;gap:8px}
+.hl .ic{width:36px;height:36px;border-radius:8px;background:var(--accent);display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px}
+.hl .ht{font-size:18px;font-weight:700}
+.th-btn{width:34px;height:34px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--fg2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;transition:all .3s}
+.th-btn:hover{border-color:var(--accent);color:var(--accent)}
+.tb{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap}
+.btn{padding:6px 12px;border-radius:6px;border:1px solid var(--border);background:var(--card);color:var(--fg2);font-size:11px;cursor:pointer;transition:all .3s;font-family:inherit;display:flex;align-items:center;gap:4px}
+.btn:hover{border-color:var(--accent);color:var(--accent)}
+.btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+/* Table - EXACT layout from Excel */
+.tw{overflow-x:auto;border-radius:10px;border:1px solid var(--border);background:var(--card);box-shadow:var(--shadow)}
+table{width:100%;border-collapse:collapse;min-width:500px;font-size:13px}
+td,th{border:1px solid var(--border);padding:6px 5px;text-align:center}
+th{background:var(--th-bg);color:var(--fg2);font-weight:600;font-size:12px;white-space:nowrap;position:sticky;top:0;z-index:1}
+td:first-child{text-align:left;padding-left:10px;font-weight:500;color:var(--fg);font-size:13px;background:var(--th-bg);width:80px;min-width:70px}
+td:last-child{min-width:80px}
+td input{width:100%;padding:4px 3px;border:none;background:transparent;color:var(--fg);font-size:12px;text-align:center;outline:none;font-family:inherit}
+td input:focus{background:var(--accent-dim);border-radius:3px}
+td input::placeholder{color:var(--muted);font-size:10px}
+td.note input{text-align:left}
+.footer{text-align:center;padding:16px;font-size:11px;color:var(--muted)}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%)translateY(100px);background:var(--card);border:1px solid var(--border);border-radius:8px;padding:8px 16px;font-size:12px;color:var(--fg);z-index:200;transition:transform .4s;pointer-events:none;box-shadow:0 4px 20px rgba(0,0,0,.2)}
+.toast.show{transform:translateX(-50%)translateY(0)}
+.toast i{color:var(--accent);margin-right:4px}
+</style>
+</head>
+<body>
+<div class="c">
+<div class="hd">
+<div class="hl"><div class="ic"><i class="fas fa-tools"></i></div><div class="ht">模具記錄</div></div>
+<button class="th-btn" id="thBtn"><i class="fas fa-moon" id="thIcon"></i></button>
+</div>
+<div class="tb">
+<button class="btn primary" onclick="sv()"><i class="fas fa-save"></i> 儲存</button>
+<button class="btn" onclick="addRow()"><i class="fas fa-plus"></i> 新增</button>
+<button class="btn" onclick="clr()"><i class="fas fa-eraser"></i> 清空</button>
+</div>
+<div class="tw">
+<table>
+<thead><tr>
+<th>項目</th><th>1D</th><th>2D</th><th>3D</th><th>4D</th><th>5D</th><th>6D</th><th>備註</th>
+</tr></thead>
+<tbody id="tb"></tbody>
+</table>
+</div>
+<div class="footer">模具記錄 · 資料存在本機</div>
+</div>
+<div class="toast" id="toast"><span id="tm"></span></div>
+
+<script>
+// 主題
+(function(){
+  if(localStorage.getItem('mold-theme')==='dark'){
+    document.documentElement.setAttribute('data-theme','dark');
+    document.getElementById('thIcon').className='fas fa-sun';
+  }
+})();
+document.getElementById('thBtn').onclick=()=>{
+  const d=document.documentElement.getAttribute('data-theme')==='dark';
+  document.documentElement.setAttribute('data-theme',d?'light':'dark');
+  document.getElementById('thIcon').className=d?'fas fa-moon':'fas fa-sun';
+  localStorage.setItem('mold-theme',d?'light':'dark');
+};
+
+// 資料 — Excel 格式：每個項目一列，含 1D~6D + 備註
+const LABELS = ['尺寸','模具類型','模具編號','模具位置','對應產品','cad編號'];
+let data = JSON.parse(localStorage.getItem('mold-data')) || [];
+
+function $(id){return document.getElementById(id)}
+function msg(m){const t=$('toast');$('tm').innerHTML='<i class="fas fa-check-circle"></i>'+m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),1800);}
+
+function render(){
+  if(!data.length){
+    data = LABELS.map(l => ({label:l, d1:'',d2:'',d3:'',d4:'',d5:'',d6:'',note:''}));
+  }
+  $('tb').innerHTML = data.map((r,i) => `<tr>
+    <td>${r.label}</td>
+    <td><input type="text" data-i="${i}" data-f="d1" value="${r.d1}" oninput="inp(this)"></td>
+    <td><input type="text" data-i="${i}" data-f="d2" value="${r.d2}" oninput="inp(this)"></td>
+    <td><input type="text" data-i="${i}" data-f="d3" value="${r.d3}" oninput="inp(this)"></td>
+    <td><input type="text" data-i="${i}" data-f="d4" value="${r.d4}" oninput="inp(this)"></td>
+    <td><input type="text" data-i="${i}" data-f="d5" value="${r.d5}" oninput="inp(this)"></td>
+    <td><input type="text" data-i="${i}" data-f="d6" value="${r.d6}" oninput="inp(this)"></td>
+    <td class="note"><input type="text" data-i="${i}" data-f="note" value="${r.note}" oninput="inp(this)"></td>
+  </tr>`).join('');
+}
+
+function inp(el){
+  const i=parseInt(el.dataset.i),f=el.dataset.f;
+  data[i][f]=el.value;
+  localStorage.setItem('mold-data',JSON.stringify(data));
+}
+
+function addRow(){
+  data.push({label:'新項目', d1:'',d2:'',d3:'',d4:'',d5:'',d6:'',note:''});
+  render();localStorage.setItem('mold-data',JSON.stringify(data));msg('已新增');
+}
+
+function sv(){
+  localStorage.setItem('mold-data',JSON.stringify(data));msg('已儲存 ✅');
+}
+
+function clr(){
+  if(!data.length||!confirm('清空所有資料？'))return;
+  data=[];localStorage.removeItem('mold-data');render();msg('已清空');
+}
+
+render();
+</script>
+</body>
+</html>

@@ -1,1 +1,6 @@
-{"rewrites":[{"source":"/codeforge","destination":"/codeforge.html"},{"source":"/prompt-optimizer","destination":"/prompt-optimizer.html"},{"source":"/notebook","destination":"/notebook.html"}]}
+{"rewrites":[
+  {"source":"/codeforge","destination":"/codeforge.html"},
+  {"source":"/prompt-optimizer","destination":"/prompt-optimizer.html"},
+  {"source":"/notebook","destination":"/notebook.html"},
+  {"source":"/mold-record","destination":"/mold-record.html"}
+]}
