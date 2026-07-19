@@ -171,103 +171,185 @@ function applyP(name){
 
 function getOn(){const r=[];document.querySelectorAll('.oi.on').forEach(i=>r.push(i.dataset.o));return r;}
 
-// ===== 🔥 優化引擎 v3 =====
+// ===== 🔥 優化引擎 v4（COSTAR 框架 + 智能診斷） =====
 function opt(){
-  const raw=document.getElementById('rawInput').value.trim();
+  var raw=document.getElementById('rawInput').value.trim();
   if(!raw){document.getElementById('rb').textContent='⚠️ 請先輸入提示詞！';document.getElementById('rs').classList.add('show');return;}
-  const on=getOn(),L=[];
+  var on=getOn(),L=[];
 
-  // 智能分析 input
-  const isQ=/[？?]$/.test(raw)||/^(請問|如何|什麼是|為什麼|怎麼)/.test(raw);
-  const isCmd=/^(請|幫我|寫|產生|創建|設計|翻譯|總結|解釋)/.test(raw);
-  const hasCode=/```|function|const |let |def |class |=>/.test(raw);
+  // 智能診斷原始提示詞
+  var diag=[];
+  if(raw.length<20)diag.push('⚠️ 提示詞過短，缺少上下文與細節');
+  if(!/[？?]/.test(raw)&&!/^(請|幫我|寫|產生|翻譯|總結|解釋|設計|創建)/.test(raw))diag.push('💡 未明確指定指令類型（問題/請求）');
+  if(!/因為|為了|目標|目的是|讓讀者/.test(raw))diag.push('💡 缺少目標說明，AI 不清楚你想達成什麼');
+  if(!/不要|避免|除了|限制|必須/.test(raw))diag.push('💡 未設定限制條件，AI 可能自由發揮偏離主題');
 
-  // 1. 角色
-  if(on.includes('role')){
-    let r=document.getElementById('optRole').value;
-    if(r==='___')r=document.getElementById('crInput').value.trim()||'專業人士';
-    L.push('## 角色定位');
-    L.push(`你是一位${r}，擁有豐富的專業知識與實務經驗。請完全以這個身份來思考、分析與回應，展現出${r}應有的專業水準。`);
-    L.push('');
-  }
-
-  // 2. 背景
-  if(on.includes('context')||on.includes('goal')){
-    L.push('## 任務背景');const bg=[];
-    if(on.includes('context')){const c=document.getElementById('optContext').value.trim(),a=document.getElementById('optAud').value.trim();if(c)bg.push(`情境：${c}`);if(a)bg.push(`對象：${a}`);}
-    if(on.includes('goal')){const g=document.getElementById('optGoal').value.trim();if(g)bg.push(`目標：${g}`);}
-    if(bg.length)L.push(bg.join('\n'));
-    L.push('');
-  }
-
-  // 3. 核心任務（智能包裝）
-  L.push('## 核心任務');
-  if(isQ)L.push('請針對以下問題提供完整且深入的回應：\n'+raw);
-  else if(isCmd)L.push('請執行以下請求，確保輸出品質：\n'+raw);
-  else if(hasCode)L.push('請分析並處理以下技術內容：\n'+raw);
-  else{L.push('依據以下內容進行回應：\n');const pts=raw.split(/[。！？\n]/).filter(s=>s.trim()).map(s=>'- '+s.trim());L.push(pts.join('\n'));}
+  // COSTAR 框架
+  L.push('┌──────────────────────────────────────┐');
+  L.push('│       優化後提示詞（COSTAR 框架）      │');
+  L.push('└──────────────────────────────────────┘');
   L.push('');
 
-  // 4. 思考鏈
-  if(on.includes('cot')){
-    const c=document.getElementById('optCot').value.trim();
-    L.push('## 思考過程');
-    L.push('在回答之前，請先進行以下逐步推理：');
-    if(c){L.push(c);}else{L.push('1. 理解問題的核心與關鍵要素');L.push('2. 列出可能的解決方向');L.push('3. 評估各方案的優缺點');L.push('4. 選擇最佳方案並說明理由');L.push('5. 給出最終答案');}
-    L.push('');
-    L.push('請將推理過程放在 `【推理過程】` 區塊，最終答案放在 `【最終答案】` 區塊。');
+  // C — Context 背景
+  if(on.includes('context')||on.includes('goal')){
+    L.push('## 🎯 1. 背景與目標 (Context)');
+    var ctxLines=[];
+    if(on.includes('context')){
+      var c=document.getElementById('optContext').value.trim();
+      var a=document.getElementById('optAud').value.trim();
+      if(c)ctxLines.push('📌 情境場景：'+c);
+      if(a)ctxLines.push('👥 目標對象：'+a);
+    }
+    if(on.includes('goal')){
+      var g=document.getElementById('optGoal').value.trim();
+      if(g)ctxLines.push('🎯 核心目標：'+g);
+    }
+    if(!ctxLines.length)ctxLines.push('📌 情境場景：一般通用場景');
+    L.push(ctxLines.join('\n'));
     L.push('');
   }
 
-  // 5. 步驟
-  if(on.includes('steps')){
-    const s=document.getElementById('optSteps').value.trim();
-    L.push('## 執行步驟');
-    if(s)L.push('請依序完成以下步驟：\n'+s);
-    else{L.push('請將任務拆解為以下步驟：');L.push('1️⃣ 理解需求\n2️⃣ 蒐集資訊\n3️⃣ 執行任務\n4️⃣ 檢查結果\n5️⃣ 輸出最終版本');}
-    L.push('');
-  }
+  // O — Objective 任務
+  L.push('## 📋 2. 核心任務 (Objective)');
+  var taskType=isQ?'問題諮詢':isCmd?'執行請求':hasCode?'技術處理':'一般回應';
+  L.push('類型：'+taskType);
+  L.push('請嚴格依照以下內容進行處理，不得省略或改寫核心要求：');
+  L.push('');
+  L.push('```');
+  L.push(raw);
+  L.push('```');
+  L.push('');
 
-  // 6. 範例
-  if(on.includes('example')){
-    const i=document.getElementById('exIn').value.trim(),o=document.getElementById('exOut').value.trim();
-    if(i&&o){L.push('## 參考範例');L.push('以下是一個符合預期的輸入輸出對照，請遵循這個模式：\n');L.push('【輸入】\n'+i+'\n');L.push('【輸出】\n'+o+'\n');L.push('請依照上述範例的格式與品質來處理本次任務。\n');}
-  }
-
-  // 7. 輸出規範
-  const specs=[];
+  // S — Style 風格 + T — Tone 語氣
   if(on.includes('tone')){
-    const t=document.getElementById('optTone').value;
-    const td={'平易近人':'親切自然的口吻，多用日常用語','專業正式':'嚴謹專業的用詞與句式','簡潔明快':'精簡有力，避免冗長','幽默風趣':'輕鬆有趣的語氣，適當加入幽默','嚴肅謹慎':'謹慎保守的表達','鼓舞振奮':'積極正面的語氣'};
-    specs.push('- 語氣風格：'+t+'。'+ (td[t]||'使用適切的表達方式') +'。');
+    L.push('## 🎨 3. 表達風格 (Style & Tone)');
+    var t=document.getElementById('optTone').value;
+    var td={'平易近人':'使用親切自然的日常口吻，彷彿在跟朋友聊天','專業正式':'採用嚴謹專業的用詞與句式，展現權威性','簡潔明快':'句子精簡有力，直擊重點不拖泥帶水','幽默風趣':'語氣輕鬆活潑，適度加入幽默元素','嚴肅謹慎':'用詞保守精準，避免模糊或誇張表述','鼓舞振奮':'語氣積極正面，富有感染力與激勵性'};
+    L.push('語氣要求：**'+t+'** — '+(td[t]||td['簡潔明快']));
+    L.push('');
   }
+
+  // A — Audience 受眾
+  if(on.includes('context')){
+    var aud=document.getElementById('optAud').value.trim();
+    if(aud){
+      L.push('## 👥 4. 目標受眾 (Audience)');
+      L.push('你的回應需要讓「'+aud+'」能夠理解並獲得價值。請根據以下原則調整：');
+      var audTips={'初學者':'避免專業術語，多用比喻和類比','一般大眾':'深入淺出，重點突出','技術人員':'可以適度使用專業詞彙，注重技術細節','管理階層':'側重結論與建議，附上數據支撐','工程師':'確保技術準確性，提供可實作的內容','學生':'注重學習脈絡，循序漸進'};L.push('- 對象層級：'+aud);
+      for(var a2 in audTips){if(aud.indexOf(a2)>=0)L.push('- '+audTips[a2]);}
+      L.push('');
+    }
+  }
+
+  // 思考鏈
+  if(on.includes('cot')){
+    L.push('## 🧠 5. 推理過程 (Chain-of-Thought)');
+    var ct=document.getElementById('optCot').value.trim();
+    L.push('在給出最終答案之前，請按照以下步驟進行系統性推理：');
+    L.push('');
+    if(ct){L.push(ct);}else{
+      L.push('【步驟 1】解析問題本質 — 確認核心需求與關鍵約束');
+      L.push('【步驟 2】資訊蒐集 — 整理相關知識與背景資訊');
+      L.push('【步驟 3】方案評估 — 列出可行方案並比較優缺');
+      L.push('【步驟 4】最佳選擇 — 說明選擇理由與預期效果');
+      L.push('【步驟 5】最終回應 — 輸出完整、結構化的答案');
+    }
+    L.push('');
+    L.push('⚠️ 請將推理過程放在 `【推理過程】` 區域，最終答案放在 `【最終答案】` 區域，兩者明確分開。');
+    L.push('');
+  }
+
+  // 執行步驟
+  if(on.includes('steps')){
+    L.push('## 📝 6. 執行步驟 (Procedure)');
+    var s=document.getElementById('optSteps').value.trim();
+    if(s){L.push('請嚴格按照以下步驟依序執行：\n');L.push(s);}else{
+      L.push('請將任務拆解為以下逐步流程：');
+      L.push('  step 1：分析與理解任務需求');
+      L.push('  step 2：蒐集必要的資訊與背景');
+      L.push('  step 3：執行主要工作內容');
+      L.push('  step 4：檢查結果的完整度與準確性');
+      L.push('  step 5：優化與輸出最終版本');
+    }
+    L.push('');
+  }
+
+  // 角色
+  if(on.includes('role')){
+    var r=document.getElementById('optRole').value;
+    if(r==='___')r=document.getElementById('crInput').value.trim()||'專業人士';
+    L.push('## 👤 7. 角色扮演 (Persona)');
+    L.push('你現在的身份是：**'+r+'**');
+    L.push('請完全代入這個角色，以'+r+'的專業視角、知識背景和表達方式來回應。在回應過程中：');
+    L.push('- 展現'+r+'應有的專業判斷力與經驗');
+    L.push('- 使用'+r+'常用的術語與表達方式');
+    L.push('- 站在'+r+'的角度分析問題，給出有說服力的觀點');
+    L.push('');
+  }
+
+  // 範例
+  if(on.includes('example')){
+    var i=document.getElementById('exIn').value.trim(),o=document.getElementById('exOut').value.trim();
+    if(i&&o){
+      L.push('## 📋 8. 參考範例 (Example)');
+      L.push('請遵循以下輸入輸出範例的模式與品質標準：');
+      L.push('');
+      L.push('┌─ 輸入範例 ─────────────────┐');
+      L.push(i);
+      L.push('└──────────────────────────────┘');
+      L.push('');
+      L.push('┌─ 輸出範例 ─────────────────┐');
+      L.push(o);
+      L.push('└──────────────────────────────┘');
+      L.push('');
+      L.push('請按照上述範例的結構、深度與格式來處理本次任務。');
+      L.push('');
+    }
+  }
+
+  // R — Response 輸出規範
+  L.push('## 📐 9. 輸出規範 (Response Format)');
   if(on.includes('format')){
-    const f=document.getElementById('optFormat').value;
-    const fd={markdown:'使用 Markdown 排版（## 標題、- 列表、**粗體**、```程式碼）',bullet:'以條列式呈現，每點 - 開頭',paragraph:'以流暢段落形式輸出',table:'使用清晰表格呈現',code:'程式碼放 ``` 區塊，加註解',stepbystep:'以數字步驟呈現',summary:'摘要形式，控制在 3-5 點'};
-    specs.push('- 輸出格式：'+(fd[f]||'結構化呈現'));
+    var f=document.getElementById('optFormat').value;
+    var fd={markdown:'使用 Markdown 結構化排版（## 標題、- 列表、**粗體**、```程式碼區塊）',bullet:'以條列式呈現，每項重點用 - 開頭',paragraph:'以流暢連貫的文章段落形式輸出',table:'使用清楚的表格呈現比較資料',code:'所有程式碼放在 ``` 區塊並附上註解',stepbystep:'以 Step 1/2/3 數字步驟呈現',summary:'以摘要形式輸出，控制在 3-5 個重點'};L.push('• 格式要求：'+(fd[f]||'結構化呈現'));
+  }else{L.push('• 格式要求：結構化呈現，條理清晰');}
+  if(on.includes('tone')){var t=document.getElementById('optTone').value;L.push('• 語氣要求：'+t);}
+  if(on.includes('chinese'))L.push('• 語言要求：全程使用正體中文（繁體）回應，禁止夾雜簡體字。專有名詞首次出現時可附上原文。');
+  if(on.includes('constraint')){var c=document.getElementById('optCon').value.trim();if(c)L.push('• 限制條件：'+c);}
+  L.push('• 長度要求：在不影響完整性的前提下，盡可能精簡。如有不確定的資訊，請明確標註「需進一步確認」。');
+  L.push('');
+
+  // 品質標準
+  L.push('## ✅ 10. 品質標準 (Quality Criteria)');
+  L.push('請在輸出完成後，用以下標準自我檢查：');
+  L.push('  ☐ 完整度 — 是否涵蓋了所有要求的面向？');
+  L.push('  ☐ 準確度 — 資訊是否正確？不確定的地方是否有備註？');
+  L.push('  ☐ 結構性 — 是否易於閱讀、重點分明？');
+  L.push('  ☐ 相關性 — 回應是否緊扣核心任務，沒有離題？');
+  L.push('  ☐ 行動性 — 輸出是否可以讓使用者直接使用或參考？');
+  L.push('');
+
+  // 診斷報告
+  if(diag.length){
+    L.push('## 📊 原始提示詞診斷');
+    L.push(diag.join('\n'));
+    L.push('');
   }
-  if(on.includes('constraint')){const c=document.getElementById('optCon').value.trim();if(c)specs.push('- 限制：'+c);}
-  if(on.includes('chinese'))specs.push('- 語言：全程使用正體中文（繁體）回應，不得夾雜簡體字或英文（專有名詞除外）。');
-  if(specs.length){L.push('## 輸出規範');L.push(specs.join('\n'));L.push('');}
 
-  // 8. 品質要求
-  L.push('## 品質要求');
-  L.push('- 回應完整深入，不流於表面');
-  L.push('- 邏輯清晰、論述有據');
-  L.push('- 如有不確定資訊，請明確說明');
-  L.push('- 確保與【核心任務】高度相關，不離題');
+  L.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+  L.push('🔥 使用說明：以上為優化後的提示詞，可直接複製貼到 ChatGPT、Claude、DeepSeek 等 AI 工具中使用。');
 
-  const result=L.join('\n');
+  var result=L.join('\n');
   document.getElementById('rb').textContent=result;
   document.getElementById('rs').classList.add('show');
   updateChar();
 
   // 差異度
-  const rLen=raw.length, oLen=result.length, diff=oLen-rLen;
-  const db=document.getElementById('db');
-  if(diff<30){db.textContent='⚠️ 差異極小，建議開啟更多選項';db.style.color='var(--danger)';}
-  else if(diff<200){db.textContent='+ 已加入 '+on.length+' 項優化';db.style.color='var(--badge)';}
-  else{const pct=Math.round((1-rLen/oLen)*100);db.textContent='++ 大幅擴充 +'+diff+' 字（'+pct+'%）';db.style.color='var(--accent)';}
+  var rLen=raw.length, oLen=result.length, diff=oLen-rLen;
+  var db=document.getElementById('db');
+  if(diff<100){db.textContent='⚠️ 差異小，建議開啟更多選項';db.style.color='var(--danger)';}
+  else if(diff<500){db.textContent='+ 已加入 '+on.length+' 項最佳化';db.style.color='var(--badge)';}
+  else{var pct=Math.round((1-rLen/oLen)*100);db.textContent='++ 大幅強化 +'+diff+' 字（結構化 '+pct+'% 增量）';db.style.color='var(--accent)';}
 }
 
 // 複製
