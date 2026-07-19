@@ -37,14 +37,17 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--fg);
 .btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
 /* Table - EXACT layout from Excel */
 .tw{overflow-x:auto;border-radius:10px;border:1px solid var(--border);background:var(--card);box-shadow:var(--shadow)}
-table{width:100%;border-collapse:collapse;min-width:500px;font-size:13px}
-td,th{border:1px solid var(--border);padding:6px 5px;text-align:center}
-th{background:var(--th-bg);color:var(--fg2);font-weight:600;font-size:12px;white-space:nowrap;position:sticky;top:0;z-index:1}
-td:first-child{text-align:left;padding-left:10px;font-weight:500;color:var(--fg);font-size:13px;background:var(--th-bg);width:80px;min-width:70px}
-td:last-child{min-width:80px}
-td input{width:100%;padding:4px 3px;border:none;background:transparent;color:var(--fg);font-size:12px;text-align:center;outline:none;font-family:inherit}
+table{width:100%;border-collapse:collapse;min-width:480px;font-size:13px;table-layout:fixed}
+td,th{border:1px solid var(--border);padding:5px 3px;text-align:center}
+th{background:var(--th-bg);color:var(--fg2);font-weight:600;font-size:11px;white-space:nowrap;position:sticky;top:0;z-index:1}
+th:first-child{width:52px}
+th:nth-child(7){min-width:50px}
+th:last-child{width:auto}
+td:first-child{text-align:left;padding-left:6px;font-weight:500;color:var(--fg);font-size:12px;background:var(--th-bg);width:52px;min-width:52px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+td:last-child{min-width:60px}
+td input{width:100%;padding:4px 2px;border:none;background:transparent;color:var(--fg);font-size:11px;text-align:center;outline:none;font-family:inherit}
 td input:focus{background:var(--accent-dim);border-radius:3px}
-td input::placeholder{color:var(--muted);font-size:10px}
+td input::placeholder{color:var(--muted);font-size:9px}
 td.note input{text-align:left}
 .footer{text-align:center;padding:16px;font-size:11px;color:var(--muted)}
 .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%)translateY(100px);background:var(--card);border:1px solid var(--border);border-radius:8px;padding:8px 16px;font-size:12px;color:var(--fg);z-index:200;transition:transform .4s;pointer-events:none;box-shadow:0 4px 20px rgba(0,0,0,.2)}
