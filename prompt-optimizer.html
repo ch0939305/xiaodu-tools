@@ -72,9 +72,9 @@ textarea:focus{border-color:#10b981}
 <div class="toast" id="toast"><i class="fas fa-check-circle"></i><span id="tm"></span></div>
 
 <script>
-(function(){const k=localStorage.getItem('ds-key');if(k)document.getElementById('apiKey').value=k;})();
-function saveKey(){const k=document.getElementById('apiKey').value.trim();if(!k)return;localStorage.setItem('ds-key',k);msg('Key 已儲存 ✅');}
-function showKey(){const el=document.getElementById('apiKey');el.type='text';setTimeout(()=>el.type='password',2000);}
+(function(){if(localStorage.getItem('ds-key')){document.getElementById('keyArea').style.display='none';document.getElementById('keyDone').style.display='flex';}})();
+function saveKey(){const k=document.getElementById('apiKey').value.trim();if(!k)return;localStorage.setItem('ds-key',k);document.getElementById('keyArea').style.display='none';document.getElementById('keyDone').style.display='flex';msg('Key 已儲存 ✅');}
+function resetKey(){localStorage.removeItem('ds-key');document.getElementById('keyArea').style.display='';document.getElementById('keyDone').style.display='none';document.getElementById('apiKey').value='';}
 
 function msg(m){const t=document.getElementById('toast');document.getElementById('tm').textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2500);}
 
