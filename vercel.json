@@ -1,6 +1,5 @@
 {
   "rewrites": [
-    { "source": "/codeforge", "destination": "/codeforge.html" },
-    { "source": "/transcribe", "destination": "/transcribe.html" }
+    { "source": "/codeforge", "destination": "/codeforge.html" }
   ]
 }
