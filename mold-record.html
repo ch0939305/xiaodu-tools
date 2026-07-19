@@ -36,6 +36,10 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--fg);
 .btn:hover{border-color:var(--accent);color:var(--accent)}
 .btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
 .btn.primary:hover{background:#e74c3c}
+.btn.green{background:#27ae60;color:#fff;border-color:#27ae60}
+.btn.green:hover{background:#2ecc71}
+.btn.blue{background:#2980b9;color:#fff;border-color:#2980b9}
+.btn.blue:hover{background:#3498db}
 .btn.danger:hover{border-color:#e74c3c;color:#e74c3c}
 /* Mold switcher */
 .ms{display:flex;gap:6px;overflow-x:auto;padding:4px 0 8px;scrollbar-width:none}
@@ -70,8 +74,8 @@ td.note input{text-align:left}
 </div>
 </div>
 <div class="tb">
-<button class="btn primary" onclick="newMold()"><i class="fas fa-plus"></i> 新增模具</button>
-<button class="btn" onclick="sv()"><i class="fas fa-save"></i> 儲存</button>
+<button class="btn green" onclick="newMold()"><i class="fas fa-plus"></i> 新增模具</button>
+<button class="btn blue" onclick="sv()"><i class="fas fa-save"></i> 儲存</button>
 <button class="btn danger" onclick="delMold()"><i class="fas fa-trash"></i> 刪除</button>
 <button class="btn" onclick="renMold()"><i class="fas fa-pen"></i> 重新命名</button>
 </div>
