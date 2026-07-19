@@ -3,326 +3,111 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>🎯 AI 提示詞優化器</title>
+<title>🤖 DeepSeek 對話</title>
 <style>
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{
-  --bg:#f5f5f7;--card:#fff;--text:#1d1d1f;--text2:#6e6e73;--text3:#aeaeb2;
-  --border:#d2d2d7;--border2:#e5e5ea;--accent:#0071e3;--accent-hover:#0077ed;
-  --accent-light:#e8f0fe;--shadow:0 1px 3px rgba(0,0,0,.08);--shadow2:0 4px 12px rgba(0,0,0,.1);
-  --tag-bg:#f0f0f5;--input-bg:#fafafa;--result-bg:#f8f9fa;--badge:#34c759;--danger:#ff3b30;
-}
-body.dark{
-  --bg:#1c1c1e;--card:#2c2c2e;--text:#f5f5f7;--text2:#98989d;--text3:#636366;
-  --border:#3a3a3c;--border2:#48484a;--accent:#0a84ff;--accent-hover:#409cff;--accent-light:#1c3a5e;
-  --shadow:0 1px 3px rgba(0,0,0,.3);--shadow2:0 4px 12px rgba(0,0,0,.4);
-  --tag-bg:#3a3a3c;--input-bg:#3a3a3c;--result-bg:#38383a;--badge:#30d158;--danger:#ff453a;
-}
-html{font-size:15px}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;transition:background .35s,color .35s;display:flex;justify-content:center;padding:24px}
-.c{max-width:740px;width:100%}
-.hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px}
-.hd h1{font-size:22px;font-weight:700;letter-spacing:-.3px;display:flex;align-items:center;gap:8px}
-.hd h1 small{font-size:13px;font-weight:400;color:var(--text3);letter-spacing:0}
-.th-btn{width:38px;height:38px;border-radius:50%;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .25s}
-.th-btn:hover{border-color:var(--accent);transform:scale(1.05)}
-.card{background:var(--card);border-radius:12px;padding:20px 24px;margin-bottom:16px;box-shadow:var(--shadow);border:1px solid var(--border);transition:all .35s}
-label{display:block;font-size:13px;font-weight:600;color:var(--text2);margin-bottom:6px}
-textarea{width:100%;padding:12px 14px;border:1.5px solid var(--border2);border-radius:8px;background:var(--input-bg);color:var(--text);font-size:14px;font-family:inherit;line-height:1.6;resize:vertical;outline:none;transition:border-color .2s;min-height:100px}
-textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,113,227,.15)}
-textarea::placeholder{color:var(--text3)}
-.foot{display:flex;justify-content:space-between;align-items:center;margin-top:4px}
-.cc{font-size:11px;color:var(--text3)}
-.og{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
-.oi{display:flex;align-items:center;gap:8px;padding:8px 10px;border:1.5px solid var(--border2);border-radius:8px;cursor:pointer;transition:all .2s;background:var(--input-bg)}
-.oi:hover{border-color:var(--accent)}
-.oi.on{border-color:var(--accent);background:var(--accent-light)}
-.oi .ck{width:18px;height:18px;border-radius:4px;border:1.5px solid var(--text3);display:flex;align-items:center;justify-content:center;font-size:11px;color:transparent;transition:all .2s;flex-shrink:0}
-.oi.on .ck{border-color:var(--accent);background:var(--accent);color:#fff}
-.ol{font-size:13px;font-weight:500}.od{font-size:11px;color:var(--text3);display:block}
-.odt{display:none;margin-top:12px;padding:12px;background:var(--result-bg);border-radius:8px;border:1px solid var(--border2)}
-.odt.show{display:block}
-.odt select,.odt input,.odt textarea{width:100%;padding:8px 10px;border:1.5px solid var(--border2);border-radius:6px;background:var(--input-bg);color:var(--text);font-size:13px;font-family:inherit;outline:none;transition:border-color .2s}
-.odt select:focus,.odt input:focus,.odt textarea:focus{border-color:var(--accent)}
-.odt textarea{min-height:50px;resize:vertical}
-.odt .rw{display:flex;gap:8px}.odt .rw>*{flex:1}
-.ps{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px}
-.pb{padding:5px 12px;border:1.5px solid var(--border2);border-radius:20px;background:transparent;color:var(--text2);font-size:12px;cursor:pointer;transition:all .2s;white-space:nowrap}
-.pb:hover{border-color:var(--accent);color:var(--accent)}
-.pb.on{background:var(--accent);color:#fff;border-color:var(--accent)}
-.btn-p{width:100%;padding:12px;border:none;border-radius:8px;background:var(--accent);color:#fff;font-size:15px;font-weight:600;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:6px}
-.btn-p:hover{background:var(--accent-hover);box-shadow:0 2px 8px rgba(0,113,227,.3)}
-.rs{display:none}.rs.show{display:block}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;background:#0a0e17;color:#e8edf5;min-height:100vh}
+.c{max-width:700px;margin:0 auto;padding:16px}
+.hd{display:flex;align-items:center;gap:10px;padding:16px 0 20px}
+.hd .ic{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#10b981,#059669);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.hd .t1{flex:1}
+.hd .t1 h1{font-size:20px;font-weight:700}
+.hd .t1 p{font-size:12px;color:#6a7a90;margin-top:1px}
+.card{background:#111927;border:1px solid #1e2d47;border-radius:16px;padding:20px;margin-bottom:14px}
+textarea{width:100%;padding:12px 14px;border:1.5px solid #2a3a50;border-radius:10px;background:#0c1019;color:#e8edf5;font-size:14px;font-family:inherit;line-height:1.6;resize:vertical;outline:none;min-height:120px;transition:border-color .2s}
+textarea:focus{border-color:#10b981}
+.btn{width:100%;padding:12px;border:none;border-radius:10px;background:linear-gradient(135deg,#10b981,#059669);color:#fff;font-size:15px;font-weight:600;cursor:pointer;transition:all .2s;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:6px}
+.btn:hover{transform:translateY(-2px);box-shadow:0 4px 20px rgba(16,185,129,.3)}
+.btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.kr{display:flex;gap:6px;align-items:center}
+.kr input{flex:1;padding:8px 10px;border:1.5px solid #2a3a50;border-radius:8px;background:#0c1019;color:#e8edf5;font-size:12px;outline:none;transition:border-color .2s}
+.kr input:focus{border-color:#10b981}
+.kr .kb{padding:6px 12px;border-radius:6px;border:1px solid #2a3a50;background:transparent;color:#b0c0d8;font-size:11px;cursor:pointer;transition:all .3s;white-space:nowrap}
+.kr .kb:hover{border-color:#10b981;color:#10b981}
+.kt{font-size:10px;color:#6a7a90;margin-top:3px}
+.rs{display:none}
+.rs.show{display:block}
 .rh{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
-.rh h3{font-size:14px;font-weight:600;color:var(--text2)}
-.db{font-size:11px;padding:2px 8px;border-radius:10px;background:var(--accent-light);color:var(--accent)}
-.rb{background:var(--result-bg);border:1.5px solid var(--border2);border-radius:8px;padding:14px;min-height:100px;white-space:pre-wrap;font-size:14px;line-height:1.7;color:var(--text);transition:background .35s}
-.ft{margin-top:24px;text-align:center;font-size:11px;color:var(--text3)}
-@media(max-width:600px){.og{grid-template-columns:1fr}.hd h1{font-size:18px}.card{padding:16px}}
+.rh .rt{font-size:14px;font-weight:600;color:#10b981;display:flex;align-items:center;gap:6px}
+.rb{background:#0c1019;border:1px solid #2a3a50;border-radius:10px;padding:14px;min-height:100px;white-space:pre-wrap;font-size:14px;line-height:1.7}
+.ac{display:flex;gap:6px;margin-top:8px}
+.ac button{padding:6px 12px;border-radius:6px;border:1px solid #2a3a50;background:transparent;color:#b0c0d8;font-size:11px;cursor:pointer;transition:all .3s;font-family:inherit}
+.ac button:hover{border-color:#10b981;color:#10b981}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%)translateY(100px);background:#111927;border:1px solid #1e2d47;border-radius:10px;padding:10px 18px;display:flex;align-items:center;gap:8px;font-size:12px;z-index:200;transition:transform .4s;pointer-events:none;max-width:90%}
+.toast.show{transform:translateX(-50%)translateY(0)}
+.toast i{color:#10b981}
+@media(max-width:600px){.hd .t1 h1{font-size:18px}.card{padding:16px}}
 </style>
 </head>
 <body>
 <div class="c">
 <div class="hd">
-<h1>🎯 AI 提示詞優化器 <small>v3</small></h1>
-<button class="th-btn" id="thBtn" onclick="toggleTheme()">🌙</button>
+<div class="ic"><i class="fas fa-robot"></i></div>
+<div class="t1"><h1>DeepSeek</h1><p>直接對話，不需繁雜設定</p></div>
 </div>
 <div class="card">
-<label for="rawInput">原始提示詞 <span style="font-weight:400;font-size:11px;color:var(--text3)">貼上你要優化的內容</span></label>
-<textarea id="rawInput" placeholder="例如：幫我寫一封求職信" oninput="updateChar()"></textarea>
-<div class="foot"><span class="cc" id="cc">0 字</span><span style="font-size:11px;color:var(--text3)">支援中英文</span></div>
+<textarea id="input" placeholder="輸入你想問的問題或指令..."></textarea>
+<button class="btn" id="goBtn" onclick="ask()">🚀 送出</button>
 </div>
-<div class="card">
-<div class="ps" id="presetBar">
-<button class="pb" data-p="clear" onclick="applyP('clear')">🔄 重設</button>
-<button class="pb" data-p="write" onclick="applyP('write')">✍️ 寫作</button>
-<button class="pb" data-p="code" onclick="applyP('code')">💻 程式</button>
-<button class="pb" data-p="translate" onclick="applyP('translate')">🌐 翻譯</button>
-<button class="pb" data-p="analysis" onclick="applyP('analysis')">📊 分析</button>
-<button class="pb" data-p="learn" onclick="applyP('learn')">📚 教學</button>
+<div class="card" style="padding:14px 18px">
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+<span style="font-size:12px;color:#6a7a90">🔑 API Key</span>
+<button class="kb" onclick="showKey()" style="font-size:10px;padding:2px 8px">顯示</button>
 </div>
-<div class="og" id="opts">
-<div class="oi on" data-o="role" onclick="toggleOpt(this)"><span class="ck">✓</span><div><span class="ol">👤 角色扮演</span><span class="od">指定 AI 以特定身份回答</span></div></div>
-<div class="oi on" data-o="goal" onclick="toggleOpt(this)"><span class="ck">✓</span><div><span class="ol">🎯 目標強化</span><span class="od">明確設定輸出目標</span></div></div>
-<div class="oi" data-o="context" onclick="toggleOpt(this)"><span class="ck">✓</span><div><span class="ol">📖 背景脈絡</span><span class="od">提供情境與讀者資訊</span></div></div>
-<div class="oi" data-o="tone" onclick="toggleOpt(this)"><span class="ck">✓</span><div><span class="ol">🎨 語氣風格</span><span class="od">調整回應的用詞與語氣</span></div></div>
-<div class="oi" data-o="format" onclick="toggleOpt(this)"><span class="ck">✓</span><div><span class="ol">📐 輸出格式</span><span class="od">指定回覆的結構與排版</span></div></div>
-<div class="oi" data-o="constraint" onclick="toggleOpt(this)"><span class="ck">✓</span><div><span class="ol">🚫 限制條件</span><span class="od">設定不能做或必須避免的事</span></div></div>
-<div class="oi" data-o="example" onclick="toggleOpt(this)"><span class="ck">✓</span><div><span class="ol">📋 範例引導</span><span class="od">給一組輸入輸出參考</span></div></div>
-<div class="oi" data-o="steps" onclick="toggleOpt(this)"><span class="ck">✓</span><div><span class="ol">📝 任務拆解</span><span class="od">把任務拆成步驟依序處理</span></div></div>
-<div class="oi" data-o="cot" onclick="toggleOpt(this)"><span class="ck">✓</span><div><span class="ol">🧠 思考鏈</span><span class="od">先逐步推理再給最終答案</span></div></div>
-<div class="oi on" data-o="chinese" onclick="toggleOpt(this)"><span class="ck">✓</span><div><span class="ol">🇹🇼 繁體中文</span><span class="od">強制使用繁體中文回答</span></div></div>
+<div class="kr">
+<input type="password" id="apiKey" placeholder="sk-... 申請：platform.deepseek.com">
+<button class="kb" onclick="saveKey()">儲存</button>
 </div>
-<div class="odt" data-o="role">
-<label>指定角色</label>
-<select id="optRole"><option>專業作家</option><option selected>資深工程師</option><option>數據分析師</option><option>學術研究員</option><option>行銷專家</option><option>翻譯師</option><option>產品經理</option><option>設計師</option><option>法律顧問</option><option>私人助理</option><option value="___">自訂…</option></select>
-<div id="crWrap" style="display:none;margin-top:6px"><input type="text" id="crInput" placeholder="輸入自訂角色" oninput="cr()"></div>
-</div>
-<div class="odt" data-o="goal">
-<label>目標說明 <span style="font-weight:400;font-size:11px;color:var(--text3)">具體想達成什麼效果</span></label>
-<textarea id="optGoal" placeholder="例如：讓讀者了解 AI 在教育中的應用">讓讀者清楚理解核心概念與實際應用</textarea>
-</div>
-<div class="odt" data-o="context">
-<div class="rw">
-<div><label>情境背景</label><textarea id="optContext" style="min-height:50px"></textarea></div>
-<div><label>目標讀者</label><input type="text" id="optAud" placeholder="一般大眾、技術人員"></div>
-</div>
-</div>
-<div class="odt" data-o="tone"><label>語氣風格</label><select id="optTone"><option>平易近人</option><option>專業正式</option><option selected>簡潔明快</option><option>幽默風趣</option><option>嚴肅謹慎</option><option>鼓舞振奮</option></select></div>
-<div class="odt" data-o="format"><label>輸出格式</label><select id="optFormat"><option value="markdown">Markdown 結構化</option><option value="bullet">條列式重點</option><option value="paragraph">流暢段落</option><option value="table" selected>表格比較</option><option value="code">程式碼區塊</option><option value="stepbystep">步驟式說明</option><option value="summary">摘要式簡述</option></select></div>
-<div class="odt" data-o="constraint"><label>限制條件</label><textarea id="optCon" placeholder="例如：不要使用專業術語" style="min-height:50px"></textarea></div>
-<div class="odt" data-o="example"><div class="rw"><div><label>輸入範例</label><textarea id="exIn" style="min-height:60px"></textarea></div><div><label>輸出範例</label><textarea id="exOut" style="min-height:60px"></textarea></div></div></div>
-<div class="odt" data-o="steps"><label>執行步驟 <span style="font-weight:400;font-size:11px;color:var(--text3)">留空則自動產生</span></label><textarea id="optSteps" style="min-height:60px"></textarea></div>
-<div class="odt" data-o="cot"><label>思考鏈說明 <span style="font-weight:400;font-size:11px;color:var(--text3)">留空使用預設模板</span></label><textarea id="optCot" style="min-height:60px" placeholder="可自訂推理步驟"></textarea></div>
-<button class="btn-p" onclick="opt()">🚀 優化提示詞</button>
+<p class="kt">存在瀏覽器，不會外傳</p>
 </div>
 <div class="card rs" id="rs">
-<div class="rh"><h3>📝 優化結果</h3><span class="db" id="db"></span></div>
+<div class="rh"><div class="rt"><i class="fas fa-comment-dots"></i> DeepSeek 回應</div></div>
 <div class="rb" id="rb"></div>
-<div style="display:flex;gap:8px;margin-top:10px">
-<button class="btn-p" onclick="cp()" style="flex:1">📋 複製結果</button>
-<button class="btn-p" onclick="showDiff()" style="flex:1;background:var(--text2)">📊 對比差異</button>
-<button class="btn-p" onclick="runAI()" id="aiBtn" style="flex:1;background:linear-gradient(135deg,#10b981,#059669);color:#fff">🤖 DeepSeek 跑看看</button>
-</div>
-<div id="aiResult" style="display:none;margin-top:12px">
-<div class="rh"><h3>🤖 DeepSeek 回應</h3></div>
-<div class="rb" id="aiRb"></div>
+<div class="ac">
+<button onclick="cp()">📋 複製</button>
+<button onclick="clr()">🗑️ 清除</button>
 </div>
 </div>
-<div class="card" style="margin-top:12px;padding:14px 18px">
-<div style="display:flex;align-items:center;justify-content:space-between">
-<label style="margin:0;font-size:12px">🔑 DeepSeek API Key</label>
-<button class="pb" onclick="showKey()" style="font-size:10px;padding:2px 8px">顯示</button>
 </div>
-<div style="display:flex;gap:6px;margin-top:4px">
-<input type="password" id="apiKey" style="flex:1;padding:7px 10px;border:1.5px solid var(--border2);border-radius:6px;background:var(--input-bg);color:var(--text);font-size:12px;outline:none" placeholder="sk-... 申請：platform.deepseek.com">
-<button class="pb" onclick="saveKey()" style="font-size:11px">儲存</button>
-</div>
-<p style="font-size:10px;color:var(--text3);margin-top:3px">Key 只存瀏覽器，不上傳伺服器</p>
-</div>
-<div class="ft">AI 提示詞優化器 v3 · 優化後可按「DeepSeek 跑看看」</div>
-</div>
+<div class="toast" id="toast"><i class="fas fa-check-circle"></i><span id="tm"></span></div>
+
 <script>
-// 主題
-let isDark = localStorage.getItem('prompt-theme')==='dark';
-if(isDark) document.body.classList.add('dark');
-document.getElementById('thBtn').textContent = isDark ? '☀️' : '🌙';
-function toggleTheme(){isDark=!isDark;document.body.classList.toggle('dark',isDark);localStorage.setItem('prompt-theme',isDark?'dark':'light');document.getElementById('thBtn').textContent=isDark?'☀️':'🌙';}
+(function(){const k=localStorage.getItem('ds-key');if(k)document.getElementById('apiKey').value=k;})();
+function saveKey(){const k=document.getElementById('apiKey').value.trim();if(!k)return;localStorage.setItem('ds-key',k);msg('Key 已儲存 ✅');}
+function showKey(){const el=document.getElementById('apiKey');el.type='text';setTimeout(()=>el.type='password',2000);}
 
-// 字數
-function updateChar(){document.getElementById('cc').textContent=document.getElementById('rawInput').value.length+' 字';}
+function msg(m){const t=document.getElementById('toast');document.getElementById('tm').textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2500);}
 
-// 選項切換
-function toggleOpt(el){
-  if(el.dataset.o==='chinese')return; // always on
-  el.classList.toggle('on');
-  const d=document.querySelector(`.odt[data-o="${el.dataset.o}"]`);
-  if(d)d.classList.toggle('show',el.classList.contains('on'));
-}
-
-// 角色
-document.getElementById('optRole').addEventListener('change',function(){document.getElementById('crWrap').style.display=this.value==='___'?'block':'none';});
-function cr(){const v=document.getElementById('crInput').value.trim();if(v)document.getElementById('optRole').value='___';}
-
-// 預設集
-function applyP(name){
-  document.querySelectorAll('.pb').forEach(b=>b.classList.remove('on'));
-  const btn=document.querySelector(`.pb[data-p="${name}"]`);
-  if(btn)btn.classList.add('on');
-  document.querySelectorAll('.oi').forEach(i=>{if(i.dataset.o!=='chinese')i.classList.remove('on');});
-  document.querySelectorAll('.odt').forEach(d=>d.classList.remove('show'));
-  if(name==='clear')return;
-  const ps={write:{role:'專業作家',tone:'平易近人',format:'bullet',goal:'產出吸引人且易於閱讀的內容',ctx:'這是一篇要發布在社群媒體或部落格的文章',aud:'一般讀者',ro:true,go:true,to:true,fo:true,ctxOpt:false,co:false,st:false,ex:false},code:{role:'資深工程師',tone:'簡潔明快',format:'code',goal:'提供可直接運行的程式碼與清楚說明',aud:'開發者',con:'附上註解說明',steps:'1. 先說明問題解法\n2. 提供完整程式碼\n3. 解釋關鍵邏輯',ro:true,go:true,to:true,fo:true,ctxOpt:false,co:true,st:true,ex:false},translate:{role:'翻譯師',tone:'專業正式',format:'paragraph',goal:'準確翻譯並保留原文語氣、專業詞彙在地化',con:'保留專有名詞不翻譯，不改變原意',steps:'1. 理解原文語境\n2. 逐段翻譯\n3. 潤飾自然度',ro:true,go:true,to:true,fo:false,ctxOpt:false,co:true,st:true,ex:false},analysis:{role:'數據分析師',tone:'專業正式',format:'table',goal:'提供有數據支撐的深入分析與可行建議',aud:'管理階層／決策者',con:'避免主觀判斷，給出客觀分析',steps:'1. 總結關鍵發現\n2. 數據分析\n3. 優劣勢評估\n4. 建議方案',ro:true,go:true,to:true,fo:true,ctxOpt:false,co:true,st:true,ex:false},learn:{role:'學術研究員',tone:'平易近人',format:'stepbystep',goal:'用淺顯易懂的方式解釋複雜概念',ctx:'對象是沒有相關背景知識的學習者',aud:'初學者',con:'避免專業術語，或用白話解釋',steps:'1. 用比喻引入概念\n2. 拆解核心原理\n3. 舉例說明\n4. 總結重點',ro:true,go:true,to:true,fo:true,ctxOpt:true,co:true,st:true,ex:false}};
-  const p=ps[name];if(!p)return;
-  const so=(k,a)=>{const i=document.querySelector(`.oi[data-o="${k}"]`);if(i){i.classList.toggle('on',a);const d=document.querySelector(`.odt[data-o="${k}"]`);if(d)d.classList.toggle('show',a);}};
-  so('role',p.ro);so('goal',p.go);so('tone',p.to);so('format',p.fo);so('constraint',p.co);so('steps',p.st);so('example',p.ex);so('context',p.ctxOpt);
-  if(p.ro){if(p.role)document.getElementById('optRole').value=p.role;}
-  if(p.to)document.getElementById('optTone').value=p.tone;
-  if(p.fo)document.getElementById('optFormat').value=p.format;
-  if(p.go)document.getElementById('optGoal').value=p.goal;
-  if(p.ctxOpt){document.getElementById('optContext').value=p.ctx||'';document.getElementById('optAud').value=p.aud||'';}
-  if(p.co)document.getElementById('optCon').value=p.con||'';
-  if(p.st)document.getElementById('optSteps').value=p.steps||'';
-}
-
-function getOn(){const r=[];document.querySelectorAll('.oi.on').forEach(i=>r.push(i.dataset.o));return r;}
-
-// ===== 🔥 優化引擎 v3 =====
-function opt(){
-  const raw=document.getElementById('rawInput').value.trim();
-  if(!raw){document.getElementById('rb').textContent='⚠️ 請先輸入提示詞！';document.getElementById('rs').classList.add('show');return;}
-  const on=getOn(),L=[];
-
-  // 智能分析 input
-  const isQ=/[？?]$/.test(raw)||/^(請問|如何|什麼是|為什麼|怎麼)/.test(raw);
-  const isCmd=/^(請|幫我|寫|產生|創建|設計|翻譯|總結|解釋)/.test(raw);
-  const hasCode=/```|function|const |let |def |class |=>/.test(raw);
-
-  // 1. 角色
-  if(on.includes('role')){
-    let r=document.getElementById('optRole').value;
-    if(r==='___')r=document.getElementById('crInput').value.trim()||'專業人士';
-    L.push('## 角色定位');
-    L.push(`你是一位${r}，擁有豐富的專業知識與實務經驗。請完全以這個身份來思考、分析與回應，展現出${r}應有的專業水準。`);
-    L.push('');
-  }
-
-  // 2. 背景
-  if(on.includes('context')||on.includes('goal')){
-    L.push('## 任務背景');const bg=[];
-    if(on.includes('context')){const c=document.getElementById('optContext').value.trim(),a=document.getElementById('optAud').value.trim();if(c)bg.push(`情境：${c}`);if(a)bg.push(`對象：${a}`);}
-    if(on.includes('goal')){const g=document.getElementById('optGoal').value.trim();if(g)bg.push(`目標：${g}`);}
-    if(bg.length)L.push(bg.join('\n'));
-    L.push('');
-  }
-
-  // 3. 核心任務（智能包裝）
-  L.push('## 核心任務');
-  if(isQ)L.push('請針對以下問題提供完整且深入的回應：\n'+raw);
-  else if(isCmd)L.push('請執行以下請求，確保輸出品質：\n'+raw);
-  else if(hasCode)L.push('請分析並處理以下技術內容：\n'+raw);
-  else{L.push('依據以下內容進行回應：\n');const pts=raw.split(/[。！？\n]/).filter(s=>s.trim()).map(s=>'- '+s.trim());L.push(pts.join('\n'));}
-  L.push('');
-
-  // 4. 思考鏈
-  if(on.includes('cot')){
-    const c=document.getElementById('optCot').value.trim();
-    L.push('## 思考過程');
-    L.push('在回答之前，請先進行以下逐步推理：');
-    if(c){L.push(c);}else{L.push('1. 理解問題的核心與關鍵要素');L.push('2. 列出可能的解決方向');L.push('3. 評估各方案的優缺點');L.push('4. 選擇最佳方案並說明理由');L.push('5. 給出最終答案');}
-    L.push('');
-    L.push('請將推理過程放在 `【推理過程】` 區塊，最終答案放在 `【最終答案】` 區塊。');
-    L.push('');
-  }
-
-  // 5. 步驟
-  if(on.includes('steps')){
-    const s=document.getElementById('optSteps').value.trim();
-    L.push('## 執行步驟');
-    if(s)L.push('請依序完成以下步驟：\n'+s);
-    else{L.push('請將任務拆解為以下步驟：');L.push('1️⃣ 理解需求\n2️⃣ 蒐集資訊\n3️⃣ 執行任務\n4️⃣ 檢查結果\n5️⃣ 輸出最終版本');}
-    L.push('');
-  }
-
-  // 6. 範例
-  if(on.includes('example')){
-    const i=document.getElementById('exIn').value.trim(),o=document.getElementById('exOut').value.trim();
-    if(i&&o){L.push('## 參考範例');L.push('以下是一個符合預期的輸入輸出對照，請遵循這個模式：\n');L.push('【輸入】\n'+i+'\n');L.push('【輸出】\n'+o+'\n');L.push('請依照上述範例的格式與品質來處理本次任務。\n');}
-  }
-
-  // 7. 輸出規範
-  const specs=[];
-  if(on.includes('tone')){
-    const t=document.getElementById('optTone').value;
-    const td={'平易近人':'親切自然的口吻，多用日常用語','專業正式':'嚴謹專業的用詞與句式','簡潔明快':'精簡有力，避免冗長','幽默風趣':'輕鬆有趣的語氣，適當加入幽默','嚴肅謹慎':'謹慎保守的表達','鼓舞振奮':'積極正面的語氣'};
-    specs.push('- 語氣風格：'+t+'。'+ (td[t]||'使用適切的表達方式') +'。');
-  }
-  if(on.includes('format')){
-    const f=document.getElementById('optFormat').value;
-    const fd={markdown:'使用 Markdown 排版（## 標題、- 列表、**粗體**、```程式碼）',bullet:'以條列式呈現，每點 - 開頭',paragraph:'以流暢段落形式輸出',table:'使用清晰表格呈現',code:'程式碼放 ``` 區塊，加註解',stepbystep:'以數字步驟呈現',summary:'摘要形式，控制在 3-5 點'};
-    specs.push('- 輸出格式：'+(fd[f]||'結構化呈現'));
-  }
-  if(on.includes('constraint')){const c=document.getElementById('optCon').value.trim();if(c)specs.push('- 限制：'+c);}
-  if(on.includes('chinese'))specs.push('- 語言：全程使用正體中文（繁體）回應，不得夾雜簡體字或英文（專有名詞除外）。');
-  if(specs.length){L.push('## 輸出規範');L.push(specs.join('\n'));L.push('');}
-
-  // 8. 品質要求
-  L.push('## 品質要求');
-  L.push('- 回應完整深入，不流於表面');
-  L.push('- 邏輯清晰、論述有據');
-  L.push('- 如有不確定資訊，請明確說明');
-  L.push('- 確保與【核心任務】高度相關，不離題');
-
-  const result=L.join('\n');
-  document.getElementById('rb').textContent=result;
-  document.getElementById('rs').classList.add('show');
-  updateChar();
-
-  // 差異度
-  const rLen=raw.length, oLen=result.length, diff=oLen-rLen;
-  const db=document.getElementById('db');
-  if(diff<30){db.textContent='⚠️ 差異極小，建議開啟更多選項';db.style.color='var(--danger)';}
-  else if(diff<200){db.textContent='+ 已加入 '+on.length+' 項優化';db.style.color='var(--badge)';}
-  else{const pct=Math.round((1-rLen/oLen)*100);db.textContent='++ 大幅擴充 +'+diff+' 字（'+pct+'%）';db.style.color='var(--accent)';}
-}
-
-// 複製
-function cp(){const t=document.getElementById('rb').textContent;navigator.clipboard.writeText(t).then(()=>{const b=event.target;const o=b.textContent;b.textContent='✅ 已複製';setTimeout(()=>b.textContent=o,1500);});}
-
-// 對比
-function showDiff(){const r=document.getElementById('rawInput').value.trim(),rb=document.getElementById('rb').textContent;if(!r||!rb)return;document.getElementById('rb').textContent='━━━ 原始輸入 ━━━\n\n'+r+'\n\n━━━ 優化輸出 ━━━\n\n'+rb;const b=event.target;const o=b.textContent;b.textContent='🔄 返回結果';b.onclick=()=>{opt();b.textContent=o;b.onclick=showDiff;};}
-
-// ===== 🔑 DeepSeek API =====
-(function(){const k=localStorage.getItem('ds-api-key');if(k)document.getElementById('apiKey').value=k;})();
-function saveKey(){const k=document.getElementById('apiKey').value.trim();if(!k)return;localStorage.setItem('ds-api-key',k);alert('Key 已儲存 ✅');}
-function showKey(){document.getElementById('apiKey').type='text';setTimeout(()=>document.getElementById('apiKey').type='password',2000);}
-
-async function runAI(){
-  const prompt=document.getElementById('rb').textContent;
-  if(!prompt||prompt.startsWith('⚠️')){alert('請先優化提示詞');return;}
-  const key=localStorage.getItem('ds-api-key');
-  if(!key){alert('請先輸入 DeepSeek API Key');return;}
-  const btn=document.getElementById('aiBtn');
-  const ar=document.getElementById('aiResult');
-  const rb=document.getElementById('aiRb');
-  btn.disabled=true;btn.textContent='⏳ 呼叫 DeepSeek...';
-  ar.style.display='block';rb.textContent='正在等待回應...';
+async function ask(){
+  const text=document.getElementById('input').value.trim();
+  if(!text){msg('請輸入內容','err');return}
+  const key=localStorage.getItem('ds-key');
+  if(!key){msg('請先設定 API Key','err');return}
+  const btn=document.getElementById('goBtn');
+  const rs=document.getElementById('rs');
+  const rb=document.getElementById('rb');
+  btn.disabled=true;btn.textContent='⏳ DeepSeek 思考中...';
+  rs.classList.remove('show');
   try{
     const resp=await fetch('https://api.deepseek.com/chat/completions',{
       method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},
-      body:JSON.stringify({model:'deepseek-chat',messages:[{role:'user',content:prompt}],stream:false})
+      headers:{'Content-Type':'application/json','Authorization':'***'+key},
+      body:JSON.stringify({model:'deepseek-chat',messages:[{role:'user',content:text}],stream:false})
     });
     if(!resp.ok){const e=await resp.json();throw new Error(e.error?.message||'HTTP '+resp.status);}
     const d=await resp.json();
     rb.textContent=d.choices[0].message.content;
-    btn.textContent='🤖 再跑一次';
-    ar.scrollIntoView({behavior:'smooth'});
-  }catch(e){rb.textContent='❌ 錯誤：'+e.message;btn.textContent='🤖 重試';}
-  btn.disabled=false;
+    rs.classList.add('show');
+    rs.scrollIntoView({behavior:'smooth'});
+    msg('完成 ✅');
+  }catch(e){rb.textContent='❌ 錯誤：'+e.message;rs.classList.add('show');msg('失敗','err');}
+  btn.disabled=false;btn.textContent='🚀 送出';
 }
 
-console.log('🎯 提示詞優化器 v3 + DeepSeek');
+function cp(){const t=document.getElementById('rb').textContent;if(!t)return;navigator.clipboard.writeText(t).then(()=>msg('已複製'));}
+function clr(){document.getElementById('rb').textContent='';document.getElementById('rs').classList.remove('show');msg('已清除');}
+
+document.getElementById('input').addEventListener('keydown',e=>{if(e.ctrlKey&&e.key==='Enter'){e.preventDefault();ask()}});
 </script>
 </body>
 </html>
