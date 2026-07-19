@@ -221,6 +221,37 @@ function exportPDF(){
   w.document.write(h);w.document.close();
 }
 
+function exportPDF(){
+  if(!cur||!db.m[cur]){msg('沒有資料可匯出');return;}
+  const m=db.m[cur];
+  var w=window.open('','_blank');
+  var h='<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>'+m.name+'</title>';
+  h+='<style>*{margin:0;padding:0;box-sizing:border-box}';
+  h+='body{font-family:sans-serif;padding:16px;background:#fff;color:#222}';
+  h+='.tb{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap}';  
+  h+='.tb a{padding:10px 20px;border-radius:8px;background:#c0392b;color:#fff;text-decoration:none;font-size:14px;font-weight:600;display:inline-flex;align-items:center;gap:6px}';
+  h+='.tb a.s{background:#2980b9}';
+  h+='h2{margin-bottom:12px;font-size:18px}';
+  h+='table{width:100%;border-collapse:collapse;font-size:13px}'; 
+  h+='th,td{border:1px solid #bbb;padding:6px 5px;text-align:center}'; 
+  h+='th{background:#e8e3dc;font-size:12px}td:first-child{background:#f5f2ed;font-weight:500;width:60px}'; 
+  h+='@media print{.tb{display:none}}'; 
+  h+='</style></head><body>';
+  h+='<div class="tb"><a href="#" onclick="window.print();return false">🖨️ 列印</a><a href="#" class="s" onclick="share();return false">📤 分享</a></div>';
+  h+='<script>function share(){if(navigator.share){navigator.share({title:\''+m.name+'\',text:document.getElementById(\'d\').innerText});}}<\/script>';
+  h+='<h2>'+m.name+'</h2>';
+  h+='<div id="d"><table><thead><tr><th>項目</th><th>1D</th><th>2D</th><th>3D</th><th>4D</th><th>5D</th><th>6D</th><th>備註</th></tr></thead><tbody>';
+  m.rows.forEach(function(r){
+    h+='<tr><td>'+r.label+'</td>'; 
+    ['d1','d2','d3','d4','d5','d6'].forEach(function(f){h+='<td>'+(r[f]||'')+'</td>';});
+    h+='<td>'+(r.note||'')+'</td></tr>';
+  });
+  h+='</tbody></table></div>';
+  h+='<p style="font-size:10px;color:#999;text-align:center;margin-top:16px">'+new Date().toLocaleString('zh-TW')+'</p>';
+  h+='</body></html>';
+  w.document.write(h);w.document.close();
+}
+
 // 初始化 — 選最後一個冲棒
 if(db.order.length) cur = db.order[db.order.length-1];
 render();
