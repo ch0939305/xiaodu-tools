@@ -11,7 +11,7 @@
 --bg: #f5f2ed; --card: #fff; --th-bg: #e8e3dc;
 --border: #cdc5ba; --border2: #ddd8d0;
 --fg: #2a221c; --fg2: #5a4e42; --muted: #a09888;
---accent: #c0392b; --accent-dim: rgba(192,57,43,.08);
+--accent: #8e44ad; --accent-dim: rgba(192,57,43,.08);
 --input-bg: #fff;
 }
 [data-theme="dark"] {
@@ -68,7 +68,7 @@ td.note input{text-align:left}
 <body>
 <div class="c">
 <div class="hd">
-<div class="hl"><div class="ic" style="background:#8e44ad"><i class="fas fa-gavel"></i></div><div class="ht">冲棒記錄</div></div>
+<div class="hl"><div class="ic"><i class="fas fa-gavel"></i></div><div class="ht">冲棒記錄</div></div>
 <div class="hdr">
 <button class="th-btn" id="thBtn"><i class="fas fa-moon" id="thIcon"></i></button>
 </div>
@@ -76,10 +76,11 @@ td.note input{text-align:left}
 <div class="tb">
 <button class="btn green" onclick="newMold()"><i class="fas fa-plus"></i> 新增冲棒</button>
 <button class="btn blue" onclick="sv()"><i class="fas fa-save"></i> 儲存</button>
+<button class="btn" onclick="exportPDF()"><i class="fas fa-file-pdf"></i> PDF</button>
 <button class="btn danger" onclick="delMold()"><i class="fas fa-trash"></i> 刪除</button>
 <button class="btn" onclick="renMold()"><i class="fas fa-pen"></i> 重新命名</button>
 </div>
-<div class="ms" id="moldTabs"></div>
+<div class="ms" id="punchTabs"></div>
 <div class="tw">
 <table>
 <thead><tr>
@@ -92,6 +93,7 @@ td.note input{text-align:left}
 </div>
 <div class="toast" id="toast"><span id="tm"></span></div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <script>
 // 主題
 (function(){
@@ -170,7 +172,7 @@ function render(){
 }
 
 function renderTabs(){
-  const el = $('moldTabs');
+  const el = $('punchTabs');
   if(!db.order.length){el.innerHTML='';return;}
   el.innerHTML = db.order.map(id => {
     const m = db.m[id];
@@ -191,6 +193,27 @@ function sv(){
   if(!cur||!db.m[cur]) return;
   // Save note - add note field below table or keep as-is
   saveDB();msg('已儲存 ✅');
+}
+
+// 匯出 PDF
+function exportPDF(){
+  if(!cur||!db.m[cur]){msg('沒有資料可匯出');return;}
+  const m=db.m[cur];
+  var h='<div style="padding:20px;font-family:sans-serif">';
+  h+='<h2 style="margin-bottom:16px">'+m.name+'</h2>';
+  h+='<table style="width:100%;border-collapse:collapse;font-size:12px">';
+  h+='<thead><tr style="background:#e8e3dc">';
+  h+='<th style="border:1px solid #999;padding:5px">項目</th><th style="border:1px solid #999;padding:5px">1D</th><th style="border:1px solid #999;padding:5px">2D</th><th style="border:1px solid #999;padding:5px">3D</th><th style="border:1px solid #999;padding:5px">4D</th><th style="border:1px solid #999;padding:5px">5D</th><th style="border:1px solid #999;padding:5px">6D</th><th style="border:1px solid #999;padding:5px">備註</th></tr></thead><tbody>';
+  m.rows.forEach(function(r){
+    h+='<tr><td style="border:1px solid #999;padding:4px;background:#f5f2ed">'+r.label+'</td>';
+    ['d1','d2','d3','d4','d5','d6'].forEach(function(f){h+='<td style="border:1px solid #999;padding:4px;text-align:center">'+(r[f]||'')+'</td>';});
+    h+='<td style="border:1px solid #999;padding:4px">'+(r.note||'')+'</td></tr>';
+  });
+  h+='</tbody></table></div>';
+  h+='<p style="font-size:10px;color:#999;text-align:center;margin-top:16px">'+new Date().toLocaleString('zh-TW')+'</p>';
+  var el=document.createElement('div');el.innerHTML=h;
+  document.body.appendChild(el);
+  html2pdf().from(el).set({margin:1,filename:m.name+'.pdf',html2canvas:{scale:2}}).save().then(function(){document.body.removeChild(el);});
 }
 
 // 初始化 — 選最後一個冲棒
