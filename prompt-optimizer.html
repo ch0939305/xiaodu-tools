@@ -175,7 +175,12 @@ function getOn(){const r=[];document.querySelectorAll('.oi.on').forEach(i=>r.pus
 function opt(){
   var raw=document.getElementById('rawInput').value.trim();
   if(!raw){document.getElementById('rb').textContent='⚠️ 請先輸入提示詞！';document.getElementById('rs').classList.add('show');return;}
-  var on=getOn(),L=[];
+  var on=getOn(),L=[],raw2=raw;
+
+  // 智能分析
+  var isQ=/[？?]$/.test(raw)||/^(請問|如何|什麼是|為什麼|怎麼)/.test(raw);
+  var isCmd=/^(請|幫我|寫|產生|創建|設計|翻譯|總結|解釋)/.test(raw);
+  var hasCode=/```|function|const |let |def |class |=>/.test(raw);
 
   // 智能診斷原始提示詞
   var diag=[];
