@@ -105,43 +105,20 @@ body{font-family:'Noto Sans TC',sans-serif;background:#0a0e1a;color:#e8edf5;min-
 </div>
 <div class="toast" id="toast"><i class="fas fa-check-circle"></i><span id="tm"></span></div>
 
+<script src="/transformers.min.js"></script>
 <script>
-// ===== 嘗試所有 CDN 載入 Transformers.js =====
-const CDNS = [
-  'https://fastly.jsdelivr.net/npm/@xenova/transformers@2.17.2/dist/transformers.min.js',
-  'https://gcore.jsdelivr.net/npm/@xenova/transformers@2.17.2/dist/transformers.min.js',
-  'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2/dist/transformers.min.js',
-  'https://unpkg.com/@xenova/transformers@2.17.2/dist/transformers.min.js'
-];
-
-function loadScript(u){
-  return new Promise((ok,fail)=>{
-    const s=document.createElement('script');
-    s.src=u;s.onload=ok;s.onerror=()=>fail(u);
-    document.head.appendChild(s);
-  });
-}
-
-(function boot(){
-  const eng=$('eng'),et=$('et');
-  let idx=0;
-  async function next(){
+// ===== 等待引擎載入 =====
+(function(){
+  const eng=document.getElementById('eng'),et=document.getElementById('et');
+  function check(){
     if(window.transformers){
       eng.className='engine ok';et.textContent='✅ AI 引擎已就緒';
-      if(window.F) $('go').disabled=false;
+      if(window.F) document.getElementById('go').disabled=false;
       return;
     }
-    if(idx>=CDNS.length){
-      eng.className='engine err';
-      et.innerHTML='❌ 無法載入 AI 引擎，<a href="#" onclick="location.reload()" style="color:#00d4aa;text-decoration:underline">重新載入</a>';
-      return;
-    }
-    const u=CDNS[idx++];
-    et.textContent='📥 載入中 ('+idx+'/'+CDNS.length+')...';
-    try{await loadScript(u)}catch(e){}
-    setTimeout(next,300); // 等腳本執行完
+    setTimeout(check,200);
   }
-  next();
+  check();
 })();
 
 // ===== 工具函數 =====
