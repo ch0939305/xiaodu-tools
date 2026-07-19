@@ -122,9 +122,25 @@ textarea::placeholder{color:var(--text3)}
 <div style="display:flex;gap:8px;margin-top:10px">
 <button class="btn-p" onclick="cp()" style="flex:1">📋 複製結果</button>
 <button class="btn-p" onclick="showDiff()" style="flex:1;background:var(--text2)">📊 對比差異</button>
+<button class="btn-p" onclick="runAI()" id="aiBtn" style="flex:1;background:linear-gradient(135deg,#10b981,#059669);color:#fff">🤖 DeepSeek 跑看看</button>
+</div>
+<div id="aiResult" style="display:none;margin-top:12px">
+<div class="rh"><h3>🤖 DeepSeek 回應</h3></div>
+<div class="rb" id="aiRb"></div>
 </div>
 </div>
-<div class="ft">AI 提示詞優化器 · 本機處理，不上傳任何資料</div>
+<div class="card" style="margin-top:12px;padding:14px 18px">
+<div style="display:flex;align-items:center;justify-content:space-between">
+<label style="margin:0;font-size:12px">🔑 DeepSeek API Key</label>
+<button class="pb" onclick="showKey()" style="font-size:10px;padding:2px 8px">顯示</button>
+</div>
+<div style="display:flex;gap:6px;margin-top:4px">
+<input type="password" id="apiKey" style="flex:1;padding:7px 10px;border:1.5px solid var(--border2);border-radius:6px;background:var(--input-bg);color:var(--text);font-size:12px;outline:none" placeholder="sk-... 申請：platform.deepseek.com">
+<button class="pb" onclick="saveKey()" style="font-size:11px">儲存</button>
+</div>
+<p style="font-size:10px;color:var(--text3);margin-top:3px">Key 只存瀏覽器，不上傳伺服器</p>
+</div>
+<div class="ft">AI 提示詞優化器 v3 · 優化後可按「DeepSeek 跑看看」</div>
 </div>
 <script>
 // 主題
@@ -271,12 +287,42 @@ function opt(){
 }
 
 // 複製
-function cp(){const t=document.getElementById('rb').textContent;navigator.clipboard.writeText(t).then(()=>{const b=event.target;b.textContent='✅ 已複製';setTimeout(()=>b.innerHTML='📋 複製結果',1500);});}
+function cp(){const t=document.getElementById('rb').textContent;navigator.clipboard.writeText(t).then(()=>{const b=event.target;const o=b.textContent;b.textContent='✅ 已複製';setTimeout(()=>b.textContent=o,1500);});}
 
 // 對比
-function showDiff(){const r=document.getElementById('rawInput').value.trim(),rb=document.getElementById('rb').textContent;if(!r||!rb)return;document.getElementById('rb').textContent='━━━ 原始輸入 ━━━\n\n'+r+'\n\n━━━ 優化輸出 ━━━\n\n'+rb;const b=event.target;b.textContent='🔄 返回結果';b.onclick=()=>{opt();b.textContent='📊 對比差異';b.onclick=showDiff;};}
+function showDiff(){const r=document.getElementById('rawInput').value.trim(),rb=document.getElementById('rb').textContent;if(!r||!rb)return;document.getElementById('rb').textContent='━━━ 原始輸入 ━━━\n\n'+r+'\n\n━━━ 優化輸出 ━━━\n\n'+rb;const b=event.target;const o=b.textContent;b.textContent='🔄 返回結果';b.onclick=()=>{opt();b.textContent=o;b.onclick=showDiff;};}
 
-console.log('🎯 提示詞優化器 v3');
+// ===== 🔑 DeepSeek API =====
+(function(){const k=localStorage.getItem('ds-api-key');if(k)document.getElementById('apiKey').value=k;})();
+function saveKey(){const k=document.getElementById('apiKey').value.trim();if(!k)return;localStorage.setItem('ds-api-key',k);alert('Key 已儲存 ✅');}
+function showKey(){document.getElementById('apiKey').type='text';setTimeout(()=>document.getElementById('apiKey').type='password',2000);}
+
+async function runAI(){
+  const prompt=document.getElementById('rb').textContent;
+  if(!prompt||prompt.startsWith('⚠️')){alert('請先優化提示詞');return;}
+  const key=localStorage.getItem('ds-api-key');
+  if(!key){alert('請先輸入 DeepSeek API Key');return;}
+  const btn=document.getElementById('aiBtn');
+  const ar=document.getElementById('aiResult');
+  const rb=document.getElementById('aiRb');
+  btn.disabled=true;btn.textContent='⏳ 呼叫 DeepSeek...';
+  ar.style.display='block';rb.textContent='正在等待回應...';
+  try{
+    const resp=await fetch('https://api.deepseek.com/chat/completions',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},
+      body:JSON.stringify({model:'deepseek-chat',messages:[{role:'user',content:prompt}],stream:false})
+    });
+    if(!resp.ok){const e=await resp.json();throw new Error(e.error?.message||'HTTP '+resp.status);}
+    const d=await resp.json();
+    rb.textContent=d.choices[0].message.content;
+    btn.textContent='🤖 再跑一次';
+    ar.scrollIntoView({behavior:'smooth'});
+  }catch(e){rb.textContent='❌ 錯誤：'+e.message;btn.textContent='🤖 重試';}
+  btn.disabled=false;
+}
+
+console.log('🎯 提示詞優化器 v3 + DeepSeek');
 </script>
 </body>
 </html>
