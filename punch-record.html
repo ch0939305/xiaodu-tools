@@ -95,7 +95,7 @@ td.note input{text-align:left}
 <script>
 // 主題
 (function(){
-  if(localStorage.getItem('mold-theme')==='dark'){
+  if(localStorage.getItem('punch-theme')==='dark'){
     document.documentElement.setAttribute('data-theme','dark');
     document.getElementById('thIcon').className='fas fa-sun';
   }
@@ -104,18 +104,18 @@ document.getElementById('thBtn').onclick=()=>{
   const d=document.documentElement.getAttribute('data-theme')==='dark';
   document.documentElement.setAttribute('data-theme',d?'light':'dark');
   document.getElementById('thIcon').className=d?'fas fa-moon':'fas fa-sun';
-  localStorage.setItem('mold-theme',d?'light':'dark');
+  localStorage.setItem('punch-theme',d?'light':'dark');
 };
 
 // 資料結構：{ molds: { id: { name, rows:[], note } }, order: [] }
 const LABELS = ['尺寸','類型','編號','位置','產品','cad'];
-let db = JSON.parse(localStorage.getItem('mold-db')) || {m:{},order:[]};
+let db = JSON.parse(localStorage.getItem('punch-db')) || {m:{},order:[]};
 let cur = null;
 
 function $(id){return document.getElementById(id)}
 function msg(m){const t=$('toast');$('tm').innerHTML='<i class="fas fa-check-circle"></i>'+m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),1800);}
 
-function saveDB(){localStorage.setItem('mold-db',JSON.stringify(db));}
+function saveDB(){localStorage.setItem('punch-db',JSON.stringify(db));}
 
 function genId(){return Date.now().toString(36)+Math.random().toString(36).slice(2,5);}
 
