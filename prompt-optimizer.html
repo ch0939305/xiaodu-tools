@@ -50,15 +50,20 @@ textarea:focus{border-color:#10b981}
 <button class="btn" id="goBtn" onclick="ask()">🚀 送出</button>
 </div>
 <div class="card" style="padding:14px 18px">
+<div id="keyArea">
 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
 <span style="font-size:12px;color:#6a7a90">🔑 API Key</span>
-<button class="kb" onclick="showKey()" style="font-size:10px;padding:2px 8px">顯示</button>
 </div>
 <div class="kr">
 <input type="password" id="apiKey" placeholder="sk-... 申請：platform.deepseek.com">
 <button class="kb" onclick="saveKey()">儲存</button>
 </div>
 <p class="kt">存在瀏覽器，不會外傳</p>
+</div>
+<div id="keyDone" style="display:none;align-items:center;justify-content:space-between">
+<span style="font-size:13px;color:#10b981">✅ Key 已配置</span>
+<button class="kb" onclick="resetKey()">更換</button>
+</div>
 </div>
 <div class="card rs" id="rs">
 <div class="rh"><div class="rt"><i class="fas fa-comment-dots"></i> DeepSeek 回應</div></div>
