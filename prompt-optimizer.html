@@ -43,7 +43,7 @@ textarea:focus{border-color:#10b981}
 <div class="c">
 <div class="hd">
 <div class="ic"><i class="fas fa-robot"></i></div>
-<div class="t1"><h1>DeepSeek</h1><p>直接對話，不需繁雜設定</p></div>
+<div class="t1"><h1>DeepSeek</h1><p>直接對話</p></div>
 </div>
 <div class="card">
 <textarea id="input" placeholder="輸入你想問的問題或指令..."></textarea>
@@ -58,7 +58,7 @@ textarea:focus{border-color:#10b981}
 <input type="password" id="apiKey" placeholder="sk-... 申請：platform.deepseek.com">
 <button class="kb" onclick="saveKey()">儲存</button>
 </div>
-<p class="kt">存在瀏覽器，不會外傳</p>
+<p class="kt">存完後請把此頁加入書籤，Key 會編碼在網址中</p>
 </div>
 <div id="keyDone" style="display:none;align-items:center;justify-content:space-between">
 <span style="font-size:13px;color:#10b981">✅ Key 已配置</span>
@@ -77,48 +77,74 @@ textarea:focus{border-color:#10b981}
 <div class="toast" id="toast"><i class="fas fa-check-circle"></i><span id="tm"></span></div>
 
 <script>
-// ===== 🔑 Key 管理（localStorage + Cookie 備援） =====
-function getKey(){return localStorage.getItem('ds-key')||getCookie('ds-key');}
-function setKey(k){localStorage.setItem('ds-key',k);document.cookie='ds-key='+encodeURIComponent(k)+';path=/;max-age=31536000;SameSite=Lax';}
-function rmKey(){localStorage.removeItem('ds-key');document.cookie='ds-key=;path=/;max-age=0';}
-function getCookie(n){const m=document.cookie.match('(^|;)\\s*'+n+'\\s*=\\s*([^;]+)');return m?decodeURIComponent(m[2]):null;}
+// 🔑 Key 管理：localStorage + Cookie + URL Hash 三重儲存
+function gk(){
+  var k = localStorage.getItem('ds-key');
+  if(k) return k;
+  var m = document.cookie.match('(^|;)\\s*ds-key\\s*=\\s*([^;]+)');
+  if(m) { var v = decodeURIComponent(m[2]); localStorage.setItem('ds-key',v); return v; }
+  var h = window.location.hash.replace('#','');
+  if(h && h.indexOf('sk-')===0) { sk(h); return h; }
+  return null;
+}
+function sk(k){ localStorage.setItem('ds-key',k); document.cookie='ds-key='+encodeURIComponent(k)+';path=/;max-age=31536000;SameSite=Lax'; window.location.hash=k; }
+function rk(){ localStorage.removeItem('ds-key'); document.cookie='ds-key=;path=/;max-age=0'; history.replaceState(null,'','/prompt-optimizer'); }
 
-(function(){if(getKey()){document.getElementById('keyArea').style.display='none';document.getElementById('keyDone').style.display='flex';}})();
-function saveKey(){const k=document.getElementById('apiKey').value.trim();if(!k)return;setKey(k);document.getElementById('keyArea').style.display='none';document.getElementById('keyDone').style.display='flex';msg('Key 已儲存 ✅');}
-function resetKey(){rmKey();document.getElementById('keyArea').style.display='';document.getElementById('keyDone').style.display='none';document.getElementById('apiKey').value='';}
+if(gk()){ document.getElementById('keyArea').style.display='none'; document.getElementById('keyDone').style.display='flex'; }
 
-function msg(m){const t=document.getElementById('toast');document.getElementById('tm').textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2500);}
+function saveKey(){
+  var k = document.getElementById('apiKey').value.trim();
+  if(!k) return;
+  sk(k);
+  document.getElementById('keyArea').style.display='none';
+  document.getElementById('keyDone').style.display='flex';
+  msg('✅ Key 已儲存，請加入書籤');
+}
+function resetKey(){
+  rk();
+  document.getElementById('keyArea').style.display='';
+  document.getElementById('keyDone').style.display='none';
+  document.getElementById('apiKey').value='';
+}
+
+function msg(m){
+  var t=document.getElementById('toast');
+  document.getElementById('tm').textContent=m;
+  t.classList.add('show');
+  clearTimeout(t._t);
+  t._t=setTimeout(function(){t.classList.remove('show');},2500);
+}
 
 async function ask(){
-  const text=document.getElementById('input').value.trim();
-  if(!text){msg('請輸入內容','err');return}
-  const key=getKey();
-  if(!key){msg('請先設定 API Key','err');return}
-  const btn=document.getElementById('goBtn');
-  const rs=document.getElementById('rs');
-  const rb=document.getElementById('rb');
+  var text=document.getElementById('input').value.trim();
+  if(!text){msg('請輸入內容');return}
+  var key=gk();
+  if(!key){msg('請先設定 API Key');return}
+  var btn=document.getElementById('goBtn');
+  var rs=document.getElementById('rs');
+  var rb=document.getElementById('rb');
   btn.disabled=true;btn.textContent='⏳ DeepSeek 思考中...';
   rs.classList.remove('show');
   try{
-    const resp=await fetch('https://api.deepseek.com/chat/completions',{
+    var resp=await fetch('https://api.deepseek.com/chat/completions',{
       method:'POST',
       headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},
       body:JSON.stringify({model:'deepseek-chat',messages:[{role:'user',content:text}],stream:false})
     });
-    if(!resp.ok){const e=await resp.json();throw new Error(e.error?.message||'HTTP '+resp.status);}
-    const d=await resp.json();
+    if(!resp.ok){var e=await resp.json();throw new Error(e.error?.message||'HTTP '+resp.status);}
+    var d=await resp.json();
     rb.textContent=d.choices[0].message.content;
     rs.classList.add('show');
     rs.scrollIntoView({behavior:'smooth'});
     msg('完成 ✅');
-  }catch(e){rb.textContent='❌ 錯誤：'+e.message;rs.classList.add('show');msg('失敗','err');}
+  }catch(e){rb.textContent='❌ 錯誤：'+e.message;rs.classList.add('show');msg('失敗');}
   btn.disabled=false;btn.textContent='🚀 送出';
 }
 
-function cp(){const t=document.getElementById('rb').textContent;if(!t)return;navigator.clipboard.writeText(t).then(()=>msg('已複製'));}
+function cp(){var t=document.getElementById('rb').textContent;if(!t)return;navigator.clipboard.writeText(t).then(function(){msg('已複製');});}
 function clr(){document.getElementById('rb').textContent='';document.getElementById('rs').classList.remove('show');msg('已清除');}
 
-document.getElementById('input').addEventListener('keydown',e=>{if(e.ctrlKey&&e.key==='Enter'){e.preventDefault();ask()}});
+document.getElementById('input').addEventListener('keydown',function(e){if(e.ctrlKey&&e.key==='Enter'){e.preventDefault();ask();}});
 </script>
 </body>
 </html>
