@@ -2,5 +2,6 @@
   {"source":"/codeforge","destination":"/codeforge.html"},
   {"source":"/prompt-optimizer","destination":"/prompt-optimizer.html"},
   {"source":"/notebook","destination":"/notebook.html"},
-  {"source":"/mold-record","destination":"/mold-record.html"}
+  {"source":"/mold-record","destination":"/mold-record.html"},
+  {"source":"/punch-record","destination":"/punch-record.html"}
 ]}
