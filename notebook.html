@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>多功能筆記本</title>
+  <!-- Font Awesome 圖標庫 -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <style>
+    /* ===== CSS 變數：日夜主題核心 ===== */
+    :root {
+      --bg: #f5f5f0;
+      --card-bg: #ffffff;
+      --text: #1e1e1e;
+      --text-secondary: #666;
+      --border: #d0d0c8;
+      --accent: #4a90d9;
+      --accent-hover: #357abd;
+      --shadow: rgba(0,0,0,0.08);
+      --input-bg: #fafaf8;
+      --tag-bg: #e8e8e0;
+      --header-bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      --danger: #e74c3c;
+      --success: #27ae60;
+      --radius: 10px;
+    }
+
+    /* 夜間模式：透過 .dark 切換全部變數 */
+    .dark {
+      --bg: #1a1a2e;
+      --card-bg: #252540;
+      --text: #e0e0e0;
+      --text-secondary: #aaa;
+      --border: #3a3a5c;
+      --accent: #6c9ef0;
+      --accent-hover: #4a7ed4;
+      --shadow: rgba(0,0,0,0.3);
+      --input-bg: #2a2a48;
+      --tag-bg: #3a3a5c;
+      --header-bg: linear-gradient(135deg, #1a1a4e 0%, #3a1a6e 100%);
+    }
+
+    /* ===== 全域重置 ===== */
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans TC", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      transition: background 0.3s, color 0.3s;
+    }
+
+    /* ===== Header ===== */
+    .header {
+      background: var(--header-bg);
+      padding: 18px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      box-shadow: 0 2px 12px var(--shadow);
+    }
+    .header h1 {
+      color: #fff;
+      font-size: 22px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* 日夜切換按鈕 */
+    .theme-toggle {
+      background: rgba(255,255,255,0.15);
+      border: 1px solid rgba(255,255,255,0.3);
+      color: #fff;
+      padding: 8px 14px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.2s;
+    }
+    .theme-toggle:hover { background: rgba(255,255,255,0.25); }
+
+    /* ===== 主容器 ===== */
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 24px 16px;
+    }
+
+    /* ===== 操作列：搜尋 + 新增 ===== */
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 20px;
+      align-items: center;
+    }
+    .search-box {
+      flex: 1;
+      min-width: 200px;
+      position: relative;
+    }
+    .search-box i {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-secondary);
+    }
+    .search-box input {
+      width: 100%;
+      padding: 10px 14px 10px 36px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--input-bg);
+      color: var(--text);
+      font-size: 14px;
+      outline: none;
+      transition: border 0.2s;
+    }
+    .search-box input:focus { border-color: var(--accent); }
+
+    /* 類別按鈕組 */
+    .category-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .cat-btn {
+      padding: 8px 16px;
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      background: var(--card-bg);
+      color: var(--text);
+      cursor: pointer;
+      font-size: 13px;
+      transition: all 0.2s;
+    }
+    .cat-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .cat-btn.active {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+    .add-cat-btn {
+      padding: 8px 12px;
+      border: 1px dashed var(--border);
+      border-radius: 20px;
+      background: transparent;
+      color: var(--text-secondary);
+      cursor: pointer;
+      font-size: 13px;
+    }
+    .add-cat-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* 新增筆記按鈕 */
+    .btn-primary {
+      padding: 10px 20px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius);
+      cursor: pointer;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+      transition: background 0.2s;
+    }
+    .btn-primary:hover { background: var(--accent-hover); }
+
+    /* ===== 筆記網格 ===== */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 16px;
+    }
+    .grid-empty {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-secondary);
+    }
+    .grid-empty i { font-size: 48px; margin-bottom: 12px; opacity: 0.4; }
+
+    /* ===== 筆記卡片 ===== */
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      box-shadow: 0 2px 8px var(--shadow);
+      transition: box-shadow 0.2s, transform 0.2s;
+      display: flex;
+      flex-direction: column;
+    }
+    .card:hover {
+      box-shadow: 0 4px 16px var(--shadow);
+      transform: translateY(-2px);
+    }
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 8px;
+    }
+    .card-category {
+      font-size: 11px;
+      padding: 2px 10px;
+      border-radius: 12px;
+      background: var(--tag-bg);
+      color: var(--text-secondary);
+      white-space: nowrap;
+    }
+    .card-date {
+      font-size: 11px;
+      color: var(--text-secondary);
+    }
+    .card-title {
+      font-size: 17px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      line-height: 1.4;
+      word-break: break-word;
+    }
+    .card-body {
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+      flex: 1;
+      word-break: break-word;
+      /* 多行省略（最多5行） */
+      display: -webkit-box;
+      -webkit-line-clamp: 5;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .card-actions {
+      display: flex;
+      gap: 6px;
+      margin-top: 12px;
+      padding-top: 10px;
+      border-top: 1px solid var(--border);
+    }
+    .card-actions button {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 6px 12px;
+      cursor: pointer;
+      font-size: 12px;
+      color: var(--text-secondary);
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .card-actions .edit-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: rgba(74,144,217,0.08);
+    }
+    .card-actions .del-btn:hover {
+      border-color: var(--danger);
+      color: var(--danger);
+      background: rgba(231,76,60,0.08);
+    }
+
+    /* ===== Modal 彈窗 ===== */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.45);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: var(--card-bg);
+      border-radius: 14px;
+      padding: 24px;
+      width: 100%;
+      max-width: 560px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+    }
+    .modal h2 {
+      margin-bottom: 16px;
+      font-size: 20px;
+    }
+    .modal label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      margin: 12px 0 4px;
+      color: var(--text-secondary);
+    }
+    .modal input,
+    .modal textarea,
+    .modal select {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--input-bg);
+      color: var(--text);
+      font-size: 14px;
+      outline: none;
+      font-family: inherit;
+    }
+    .modal input:focus,
+    .modal textarea:focus,
+    .modal select:focus {
+      border-color: var(--accent);
+    }
+    .modal textarea {
+      min-height: 120px;
+      resize: vertical;
+    }
+    .modal .form-row {
+      display: flex;
+      gap: 12px;
+    }
+    .modal .form-row > * { flex: 1; }
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      margin-top: 18px;
+    }
+    .modal-actions button {
+      padding: 9px 20px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      font-size: 14px;
+      transition: opacity 0.2s;
+    }
+    .modal-actions .btn-cancel {
+      background: var(--tag-bg);
+      color: var(--text);
+    }
+    .modal-actions .btn-save {
+      background: var(--accent);
+      color: #fff;
+    }
+    .modal-actions .btn-save:hover,
+    .modal-actions .btn-cancel:hover { opacity: 0.85; }
+
+    /* ===== 類別管理 ===== */
+    .cat-manage {
+      display: none;
+      margin-bottom: 16px;
+      padding: 12px 16px;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+    .cat-manage.open { display: block; }
+    .cat-manage .cat-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 8px 0;
+    }
+    .cat-manage .cat-tag {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      background: var(--tag-bg);
+      border-radius: 16px;
+      font-size: 13px;
+    }
+    .cat-manage .cat-tag .remove-cat {
+      cursor: pointer;
+      color: var(--danger);
+      font-size: 12px;
+    }
+    .cat-manage .add-cat-input {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .cat-manage .add-cat-input input {
+      flex: 1;
+      padding: 6px 10px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--input-bg);
+      color: var(--text);
+      font-size: 13px;
+      outline: none;
+    }
+    .cat-manage .add-cat-input button {
+      padding: 6px 14px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    /* ===== 統計列 ===== */
+    .stats {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-bottom: 12px;
+    }
+
+    /* ===== Toast 提示 ===== */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #333;
+      color: #fff;
+      padding: 10px 24px;
+      border-radius: 8px;
+      font-size: 14px;
+      z-index: 2000;
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+    }
+    .toast.show { opacity: 1; }
+
+    /* ===== RWD 手機適應 ===== */
+    @media (max-width: 640px) {
+      .header { padding: 14px 16px; }
+      .header h1 { font-size: 18px; }
+      .grid { grid-template-columns: 1fr; }
+      .toolbar { flex-direction: column; }
+      .search-box { min-width: 100%; }
+      .btn-primary { width: 100%; justify-content: center; }
+      .modal { padding: 16px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ===== Header ===== -->
+  <header class="header">
+    <h1><i class="fa-solid fa-book"></i> 多功能筆記本</h1>
+    <div class="header-actions">
+      <button class="theme-toggle" id="themeToggle" title="切換日夜模式">
+        <i class="fa-solid fa-moon"></i> <span>夜間</span>
+      </button>
+    </div>
+  </header>
+
+  <div class="container">
+    <!-- ===== 工具列 ===== -->
+    <div class="toolbar">
+      <div class="search-box">
+        <i class="fa-solid fa-search"></i>
+        <input type="text" id="searchInput" placeholder="搜尋筆記..." />
+      </div>
+      <div class="category-group" id="categoryGroup">
+        <!-- 由 JS 動態產生 -->
+      </div>
+      <div>
+        <button class="add-cat-btn" id="manageCatBtn" title="管理類別">
+          <i class="fa-solid fa-tags"></i>
+        </button>
+        <button class="btn-primary" id="addNoteBtn">
+          <i class="fa-solid fa-plus"></i> 新增筆記
+        </button>
+      </div>
+    </div>
+
+    <!-- ===== 類別管理面板 ===== -->
+    <div class="cat-manage" id="catManagePanel">
+      <strong>管理類別</strong>
+      <div class="cat-list" id="catList"></div>
+      <div class="add-cat-input">
+        <input type="text" id="newCatInput" placeholder="新類別名稱..." maxlength="20" />
+        <button id="addCatConfirmBtn">新增</button>
+      </div>
+    </div>
+
+    <!-- ===== 統計 ===== -->
+    <div class="stats" id="statsBar">共 0 則筆記</div>
+
+    <!-- ===== 筆記網格 ===== -->
+    <div class="grid" id="noteGrid"></div>
+  </div>
+
+  <!-- ===== Modal 編輯/新增 ===== -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal">
+      <h2 id="modalTitle">新增筆記</h2>
+      <label for="noteTitle">標題</label>
+      <input type="text" id="noteTitle" placeholder="輸入標題..." maxlength="100" />
+
+      <label for="noteCategory">類別</label>
+      <select id="noteCategory"></select>
+
+      <label for="noteContent">內容</label>
+      <textarea id="noteContent" placeholder="輸入筆記內容..."></textarea>
+
+      <div class="modal-actions">
+        <button class="btn-cancel" id="modalCancelBtn">取消</button>
+        <button class="btn-save" id="modalSaveBtn"><i class="fa-solid fa-floppy-disk"></i> 儲存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // ============================================================
+    //  一、資料層：LocalStorage CRUD
+    // ============================================================
+
+    /**
+     * 從 LocalStorage 讀取所有筆記，回傳陣列。
+     * 若無資料則回傳空陣列。
+     */
+    function loadNotes() {
+      try {
+        return JSON.parse(localStorage.getItem('multinotes')) || [];
+      } catch {
+        return [];
+      }
+    }
+
+    /** 將筆記陣列寫回 LocalStorage */
+    function saveNotes(notes) {
+      localStorage.setItem('multinotes', JSON.stringify(notes));
+    }
+
+    /** 產生短 UID (8 碼十六進位) */
+    function uid() {
+      return Math.random().toString(16).slice(2, 10);
+    }
+
+    /** 取得台灣時間字串 */
+    function nowStr() {
+      return new Date().toLocaleString('zh-TW', { timeZone: 'Asia/Taipei' });
+    }
+
+    // ============================================================
+    //  二、類別管理
+    // ============================================================
+
+    const DEFAULT_CATS = ['日常', '電腦', 'AI'];
+
+    function loadCategories() {
+      try {
+        return JSON.parse(localStorage.getItem('multinotes_cats')) || [...DEFAULT_CATS];
+      } catch {
+        return [...DEFAULT_CATS];
+      }
+    }
+
+    function saveCategories(cats) {
+      localStorage.setItem('multinotes_cats', JSON.stringify(cats));
+    }
+
+    // ============================================================
+    //  三、主題切換
+    // ============================================================
+
+    function initTheme() {
+      const dark = localStorage.getItem('multinotes_dark') === 'true';
+      document.documentElement.classList.toggle('dark', dark);
+      renderThemeBtn(dark);
+    }
+
+    function toggleTheme() {
+      const dark = !document.documentElement.classList.contains('dark');
+      document.documentElement.classList.toggle('dark', dark);
+      localStorage.setItem('multinotes_dark', dark);
+      renderThemeBtn(dark);
+    }
+
+    function renderThemeBtn(dark) {
+      const btn = document.getElementById('themeToggle');
+      btn.innerHTML = dark
+        ? '<i class="fa-solid fa-sun"></i> <span>日間</span>'
+        : '<i class="fa-solid fa-moon"></i> <span>夜間</span>';
+    }
+
+    // ============================================================
+    //  四、UI 渲染
+    // ============================================================
+
+    let currentFilter = '全部';   // 當前選中的類別
+    let searchQuery = '';
+    let editingId = null;         // null = 新增模式, string = 編輯模式
+
+    const $ = id => document.getElementById(id);
+    const grid = $('noteGrid');
+    const stats = $('statsBar');
+    const catGroup = $('categoryGroup');
+    const modalOverlay = $('modalOverlay');
+    const modalTitle = $('modalTitle');
+    const noteTitle = $('noteTitle');
+    const noteCategory = $('noteCategory');
+    const noteContent = $('noteContent');
+    const searchInput = $('searchInput');
+
+    /** Toast 提示 */
+    function showToast(msg) {
+      const t = $('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      clearTimeout(t._timer);
+      t._timer = setTimeout(() => t.classList.remove('show'), 2000);
+    }
+
+    /** 渲染類別按鈕 + 管理面板 */
+    function renderCategories() {
+      const cats = loadCategories();
+      // 類別按鈕
+      catGroup.innerHTML = `
+        <button class="cat-btn ${currentFilter === '全部' ? 'active' : ''}" data-cat="全部">全部</button>
+        ${cats.map(c => `
+          <button class="cat-btn ${currentFilter === c ? 'active' : ''}" data-cat="${c.replace(/"/g, '&quot;')}">${c}</button>
+        `).join('')}
+      `;
+
+      // 管理面板列表
+      const catList = $('catList');
+      catList.innerHTML = cats.map(c => `
+        <span class="cat-tag">
+          ${c}
+          <span class="remove-cat" data-cat="${c.replace(/"/g, '&quot;')}"><i class="fa-solid fa-xmark"></i></span>
+        </span>
+      `).join('');
+
+      // 表單中的類別下拉選單
+      const sel = noteCategory;
+      const selected = sel.value;
+      sel.innerHTML = cats.map(c =>
+        `<option value="${c}" ${c === selected ? 'selected' : ''}>${c}</option>`
+      ).join('');
+    }
+
+    /** 渲染筆記網格 */
+    function renderNotes() {
+      const notes = loadNotes();
+      const cats = loadCategories();
+
+      // 過濾：類別 + 搜尋
+      let filtered = notes;
+      if (currentFilter !== '全部') {
+        filtered = filtered.filter(n => n.category === currentFilter);
+      }
+      if (searchQuery.trim()) {
+        const q = searchQuery.trim().toLowerCase();
+        filtered = filtered.filter(n =>
+          n.title.toLowerCase().includes(q) ||
+          n.content.toLowerCase().includes(q)
+        );
+      }
+      // 最新在前
+      filtered.sort((a, b) => new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt));
+
+      // 統計
+      stats.textContent = `共 ${filtered.length} 則筆記${currentFilter !== '全部' ? `（${currentFilter}）` : ''}`;
+
+      if (filtered.length === 0) {
+        grid.innerHTML = `<div class="grid-empty">
+          <i class="fa-regular fa-note-sticky"></i>
+          <p>目前沒有筆記</p>
+        </div>`;
+        return;
+      }
+
+      grid.innerHTML = filtered.map(n => {
+        const catColor = getCatColor(n.category, cats);
+        const date = n.updatedAt || n.createdAt;
+        return `
+          <div class="card" data-id="${n.id}">
+            <div class="card-header">
+              <span class="card-category" style="background:${catColor.bg};color:${catColor.fg}">${n.category}</span>
+              <span class="card-date">${date}</span>
+            </div>
+            <div class="card-title">${escapeHtml(n.title)}</div>
+            <div class="card-body">${escapeHtml(n.content)}</div>
+            <div class="card-actions">
+              <button class="edit-btn" data-id="${n.id}"><i class="fa-regular fa-pen-to-square"></i> 編輯</button>
+              <button class="del-btn"  data-id="${n.id}"><i class="fa-regular fa-trash-can"></i> 刪除</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    /** 簡易 HTML 跳脫防 XSS */
+    function escapeHtml(str) {
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
+    /** 根據類別名稱回傳不同的標籤顏色 */
+    function getCatColor(cat, cats) {
+      const idx = cats.indexOf(cat);
+      const palette = [
+        { bg: '#e3f2fd', fg: '#1565c0' },
+        { bg: '#e8f5e9', fg: '#2e7d32' },
+        { bg: '#fff3e0', fg: '#e65100' },
+        { bg: '#fce4ec', fg: '#c62828' },
+        { bg: '#f3e5f5', fg: '#6a1b9a' },
+        { bg: '#e0f7fa', fg: '#00695c' },
+        { bg: '#fff8e1', fg: '#f9a825' },
+        { bg: '#efebe9', fg: '#4e342e' },
+      ];
+      return palette[idx % palette.length];
+    }
+
+    // ============================================================
+    //  五、CRUD 操作
+    // ============================================================
+
+    /** 開啟新增 Modal */
+    function openAddModal() {
+      editingId = null;
+      modalTitle.textContent = '新增筆記';
+      noteTitle.value = '';
+      noteCategory.value = currentFilter !== '全部' ? currentFilter : (loadCategories()[0] || '日常');
+      noteContent.value = '';
+      modalOverlay.classList.add('open');
+      noteTitle.focus();
+    }
+
+    /** 開啟編輯 Modal */
+    function openEditModal(id) {
+      const notes = loadNotes();
+      const note = notes.find(n => n.id === id);
+      if (!note) return;
+      editingId = id;
+      modalTitle.textContent = '編輯筆記';
+      noteTitle.value = note.title;
+      noteCategory.value = note.category;
+      noteContent.value = note.content;
+      modalOverlay.classList.add('open');
+      noteTitle.focus();
+    }
+
+    /** 關閉 Modal */
+    function closeModal() {
+      modalOverlay.classList.remove('open');
+      editingId = null;
+    }
+
+    /** 儲存筆記（新增或更新） */
+    function saveNote() {
+      const title = noteTitle.value.trim() || '無標題';
+      const category = noteCategory.value;
+      const content = noteContent.value.trim();
+
+      let notes = loadNotes();
+
+      if (editingId) {
+        // 更新
+        const idx = notes.findIndex(n => n.id === editingId);
+        if (idx === -1) { showToast('找不到此筆記'); return; }
+        notes[idx] = {
+          ...notes[idx],
+          title,
+          category,
+          content,
+          updatedAt: nowStr()
+        };
+        saveNotes(notes);
+        showToast('✅ 筆記已更新');
+      } else {
+        // 新增
+        const note = {
+          id: uid(),
+          title,
+          category,
+          content,
+          createdAt: nowStr(),
+          updatedAt: nowStr()
+        };
+        notes.push(note);
+        saveNotes(notes);
+        showToast('✅ 筆記已新增');
+      }
+
+      closeModal();
+      renderNotes();
+    }
+
+    /** 刪除筆記（含確認） */
+    function deleteNote(id) {
+      if (!confirm('確定要刪除這則筆記嗎？')) return;
+      let notes = loadNotes();
+      notes = notes.filter(n => n.id !== id);
+      saveNotes(notes);
+      renderNotes();
+      showToast('🗑️ 筆記已刪除');
+    }
+
+    // ============================================================
+    //  六、類別管理
+    // ============================================================
+
+    function toggleCatPanel() {
+      $('catManagePanel').classList.toggle('open');
+      renderCategories();
+    }
+
+    function addCategory(name) {
+      name = name.trim();
+      if (!name) return;
+      let cats = loadCategories();
+      if (cats.includes(name)) {
+        showToast('⚠️ 類別已存在');
+        return;
+      }
+      cats.push(name);
+      saveCategories(cats);
+      renderCategories();
+      $('newCatInput').value = '';
+      showToast('✅ 類別已新增');
+    }
+
+    function removeCategory(name) {
+      let cats = loadCategories();
+      if (cats.length <= 1) {
+        showToast('⚠️ 至少需要一個類別');
+        return;
+      }
+      // 將使用此類別的筆記改為第一個類別
+      let notes = loadNotes();
+      let changed = false;
+      notes.forEach(n => {
+        if (n.category === name) {
+          n.category = cats.find(c => c !== name) || cats[0];
+          changed = true;
+        }
+      });
+      if (changed) saveNotes(notes);
+      cats = cats.filter(c => c !== name);
+      saveCategories(cats);
+      if (currentFilter === name) currentFilter = '全部';
+      renderCategories();
+      renderNotes();
+      showToast('🗑️ 類別已刪除');
+    }
+
+    // ============================================================
+    //  七、事件綁定（委派）
+    // ============================================================
+
+    // 主題切換
+    $('themeToggle').addEventListener('click', toggleTheme);
+
+    // 新增筆記
+    $('addNoteBtn').addEventListener('click', openAddModal);
+
+    // 類別面板開關
+    $('manageCatBtn').addEventListener('click', toggleCatPanel);
+
+    // 新增類別確認
+    $('addCatConfirmBtn').addEventListener('click', () => {
+      addCategory($('newCatInput').value);
+    });
+    $('newCatInput').addEventListener('keydown', e => {
+      if (e.key === 'Enter') addCategory(e.target.value);
+    });
+
+    // 搜尋
+    searchInput.addEventListener('input', e => {
+      searchQuery = e.target.value;
+      renderNotes();
+    });
+
+    // Modal 取消 / 儲存
+    $('modalCancelBtn').addEventListener('click', closeModal);
+    $('modalSaveBtn').addEventListener('click', saveNote);
+
+    // 按 Escape 關閉 Modal
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') closeModal();
+    });
+
+    // 點擊 Modal 外部關閉
+    modalOverlay.addEventListener('click', e => {
+      if (e.target === modalOverlay) closeModal();
+    });
+
+    // ===== 委派事件（動態元素） =====
+
+    // 類別按鈕點擊
+    catGroup.addEventListener('click', e => {
+      const btn = e.target.closest('.cat-btn');
+      if (!btn) return;
+      currentFilter = btn.dataset.cat;
+      renderCategories();
+      renderNotes();
+    });
+
+    // 管理面板：刪除類別
+    $('catList').addEventListener('click', e => {
+      const remove = e.target.closest('.remove-cat');
+      if (!remove) return;
+      removeCategory(remove.dataset.cat);
+    });
+
+    // 筆記卡片：編輯 & 刪除
+    grid.addEventListener('click', e => {
+      const editBtn = e.target.closest('.edit-btn');
+      const delBtn  = e.target.closest('.del-btn');
+
+      if (editBtn) {
+        openEditModal(editBtn.dataset.id);
+        return;
+      }
+      if (delBtn) {
+        deleteNote(delBtn.dataset.id);
+        return;
+      }
+    });
+
+    // ============================================================
+    //  八、啟動
+    // ============================================================
+
+    initTheme();
+    renderCategories();
+    renderNotes();
+
+    // Ctrl+N 快速新增
+    document.addEventListener('keydown', e => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
+        e.preventDefault();
+        openAddModal();
+      }
+    });
+
+    console.log('📝 多功能筆記本已啟動 — 資料存於 LocalStorage');
+  </script>
+</body>
+</html>
