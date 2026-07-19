@@ -93,7 +93,7 @@ td.note input{text-align:left}
 </div>
 <div class="toast" id="toast"><span id="tm"></span></div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs///html2pdf.js/0.10.1///html2pdf.bundle.min.js"></script>
 <script>
 // 主題
 (function(){
@@ -199,21 +199,26 @@ function sv(){
 function exportPDF(){
   if(!cur||!db.m[cur]){msg('沒有資料可匯出');return;}
   const m=db.m[cur];
-  var h='<div style="padding:20px;font-family:sans-serif">';
-  h+='<h2 style="margin-bottom:16px">'+m.name+'</h2>';
-  h+='<table style="width:100%;border-collapse:collapse;font-size:12px">';
-  h+='<thead><tr style="background:#e8e3dc">';
-  h+='<th style="border:1px solid #999;padding:5px">項目</th><th style="border:1px solid #999;padding:5px">1D</th><th style="border:1px solid #999;padding:5px">2D</th><th style="border:1px solid #999;padding:5px">3D</th><th style="border:1px solid #999;padding:5px">4D</th><th style="border:1px solid #999;padding:5px">5D</th><th style="border:1px solid #999;padding:5px">6D</th><th style="border:1px solid #999;padding:5px">備註</th></tr></thead><tbody>';
+  var w=window.open('','_blank');
+  var h='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>'+m.name+'</title>';
+  h+='<style>body{font-family:sans-serif;padding:20px}'; 
+  h+='h2{margin-bottom:16px}'; 
+  h+='table{width:100%;border-collapse:collapse;font-size:12px}'; 
+  h+='th,td{border:1px solid #999;padding:5px;text-align:center}'; 
+  h+='th{background:#e8e3dc}td:first-child{background:#f5f2ed;font-weight:500}'; 
+  h+='@media print{body{padding:0}}'; 
+  h+='</style></head><body>';
+  h+='<h2>'+m.name+'</h2>';
+  h+='<table><thead><tr><th>項目</th><th>1D</th><th>2D</th><th>3D</th><th>4D</th><th>5D</th><th>6D</th><th>備註</th></tr></thead><tbody>';
   m.rows.forEach(function(r){
-    h+='<tr><td style="border:1px solid #999;padding:4px;background:#f5f2ed">'+r.label+'</td>';
-    ['d1','d2','d3','d4','d5','d6'].forEach(function(f){h+='<td style="border:1px solid #999;padding:4px;text-align:center">'+(r[f]||'')+'</td>';});
-    h+='<td style="border:1px solid #999;padding:4px">'+(r.note||'')+'</td></tr>';
+    h+='<tr><td>'+r.label+'</td>'; 
+    ['d1','d2','d3','d4','d5','d6'].forEach(function(f){h+='<td>'+(r[f]||'')+'</td>';});
+    h+='<td>'+(r.note||'')+'</td></tr>';
   });
-  h+='</tbody></table></div>';
-  h+='<p style="font-size:10px;color:#999;text-align:center;margin-top:16px">'+new Date().toLocaleString('zh-TW')+'</p>';
-  var el=document.createElement('div');el.innerHTML=h;
-  document.body.appendChild(el);
-  html2pdf().from(el).set({margin:1,filename:m.name+'.pdf',html2canvas:{scale:2}}).save().then(function(){document.body.removeChild(el);});
+  h+='</tbody></table>';
+  h+='<p style="font-size:10px;color:#999;text-align:center;margin-top:20px">'+new Date().toLocaleString('zh-TW')+'</p>';
+  h+='<script>window.onload=function(){window.print();}<\/script></body></html>';
+  w.document.write(h);w.document.close();
 }
 
 // 初始化 — 選最後一個冲棒
