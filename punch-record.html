@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>模具記錄</title>
+<title>冲棒記錄</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
@@ -74,7 +74,7 @@ td.note input{text-align:left}
 </div>
 </div>
 <div class="tb">
-<button class="btn green" onclick="newMold()"><i class="fas fa-plus"></i> 新增模具</button>
+<button class="btn green" onclick="newMold()"><i class="fas fa-plus"></i> 新增冲棒</button>
 <button class="btn blue" onclick="sv()"><i class="fas fa-save"></i> 儲存</button>
 <button class="btn danger" onclick="delMold()"><i class="fas fa-trash"></i> 刪除</button>
 <button class="btn" onclick="renMold()"><i class="fas fa-pen"></i> 重新命名</button>
@@ -88,7 +88,7 @@ td.note input{text-align:left}
 <tbody id="tb"></tbody>
 </table>
 </div>
-<div class="footer">模具記錄 · 一模具一整頁</div>
+<div class="footer">冲棒記錄 · 一冲棒一整頁</div>
 </div>
 <div class="toast" id="toast"><span id="tm"></span></div>
 
@@ -119,9 +119,9 @@ function saveDB(){localStorage.setItem('punch-db',JSON.stringify(db));}
 
 function genId(){return Date.now().toString(36)+Math.random().toString(36).slice(2,5);}
 
-// 新增模具
+// 新增冲棒
 function newMold(){
-  const name = prompt('請輸入模具名稱：');
+  const name = prompt('請輸入冲棒名稱：');
   if(!name||!name.trim()) return;
   const id = genId();
   db.m[id] = {name:name.trim(), rows:LABELS.map(l=>({label:l,d1:'',d2:'',d3:'',d4:'',d5:'',d6:'',note:''})), note:''};
@@ -147,13 +147,13 @@ function renMold(){
   if(n&&n.trim()){db.m[cur].name=n.trim();saveDB();render();msg('已更名');}
 }
 
-// 切換模具
+// 切換冲棒
 function switchMold(id){cur=id;render();}
 
 function render(){
   renderTabs();
   if(!cur||!db.m[cur]){
-    $('tb').innerHTML = '<tr><td colspan="8" style="padding:30px;color:var(--muted);font-size:12px;border:none">按「新增模具」開始</td></tr>';
+    $('tb').innerHTML = '<tr><td colspan="8" style="padding:30px;color:var(--muted);font-size:12px;border:none">按「新增冲棒」開始</td></tr>';
     return;
   }
   const m = db.m[cur];
@@ -193,7 +193,7 @@ function sv(){
   saveDB();msg('已儲存 ✅');
 }
 
-// 初始化 — 選最後一個模具
+// 初始化 — 選最後一個冲棒
 if(db.order.length) cur = db.order[db.order.length-1];
 render();
 </script>
